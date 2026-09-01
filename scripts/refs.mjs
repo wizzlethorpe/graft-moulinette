@@ -28,6 +28,22 @@ export function referenceFor(type, id) {
   return `Compendium.${MODULE_ID}.${pack}.${type}.${id}`;
 }
 
+// How a marketplace page names the same asset, and how an author writes one by
+// hand: the pack number and in-pack path are exactly what the page shows.
+export const ALIAS_PREFIX = "@moulinette/";
+
+export function aliasFor(type, pack, file) {
+  return `${ALIAS_PREFIX}${type}/${pack}/${file}`;
+}
+
+/** `{ type, pack, file }` for an alias, or null. */
+export function parseAlias(value) {
+  if (typeof value !== "string" || !value.startsWith(ALIAS_PREFIX)) return null;
+  const [type, pack, ...rest] = value.slice(ALIAS_PREFIX.length).split("/");
+  const file = rest.join("/");
+  return PACKS[type] && pack && file ? { type, pack, file } : null;
+}
+
 const REFERENCE = new RegExp(`^Compendium\\.${MODULE_ID}\\.([a-z]+)\\.([A-Za-z]+)\\.([A-Za-z0-9]{16})$`);
 
 /** `{ type, id }` for a source naming one of this module's packs, or null. */

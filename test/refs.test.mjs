@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { documentId, referenceFor, parseReference, PACKS } from "../scripts/refs.mjs";
+import { documentId, referenceFor, parseReference, aliasFor, parseAlias, PACKS } from "../scripts/refs.mjs";
 
 test("an asset's id is the same sixteen characters on every machine", async () => {
   const id = await documentId(10698, "json/scene/mad-lair.json");
@@ -36,4 +36,25 @@ test("anything not naming one of this module's packs is not a reference", () => 
 
 test("a type with no pack has no reference", () => {
   assert.throws(() => referenceFor("Actor", "aaaaaaaaaaaaaaaa"), /no pack holds an? Actor/);
+});
+
+// ── the readable form ───────────────────────────────────────────────────────
+
+test("an alias is the pack number and filepath a marketplace page shows", () => {
+  const alias = aliasFor("Scene", 11948, "json/scene/02-adamantine-mining.json");
+  assert.equal(alias, "@moulinette/Scene/11948/json/scene/02-adamantine-mining.json");
+  assert.deepEqual(parseAlias(alias), { type: "Scene", pack: "11948", file: "json/scene/02-adamantine-mining.json" });
+});
+
+test("an alias keeps the slashes inside its filepath", () => {
+  assert.deepEqual(parseAlias("@moulinette/Playlist/212/Music/Exploration/Path.ogg"),
+    { type: "Playlist", pack: "212", file: "Music/Exploration/Path.ogg" });
+});
+
+test("anything without a type this module packs, a pack or a file is not an alias", () => {
+  assert.equal(parseAlias("@moulinette/Actor/11948/a.json"), null, "no pack holds an Actor");
+  assert.equal(parseAlias("@moulinette/Scene/11948"), null);
+  assert.equal(parseAlias("@moulinette/11948/json/scene/a.json"), null, "the old shape, with no type");
+  assert.equal(parseAlias("Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg"), null);
+  assert.equal(parseAlias(null), null);
 });

@@ -2,7 +2,7 @@
 // materialised from the reader's own subscription before graft resolves it,
 // and the files a built document names are fetched after.
 
-import { MODULE_ID, parseReference } from "./refs.mjs";
+import { MODULE_ID, documentId, aliasFor, referenceFor, parseReference, parseAlias } from "./refs.mjs";
 import { localPaths, assetFor } from "./paths.mjs";
 import { loadIndex, downloadFile, lookupFor } from "./index.mjs";
 import { materialise } from "./packs.mjs";
@@ -55,8 +55,64 @@ export function outcome(entry, failed) {
   return { keep: true, warnings: problems };
 }
 
-/** The `graftPreBuild` transform: put every referenced document in its pack. */
-export async function transform(entries) {
+/** Every sourced entry in a patch, at any depth. Array members only, as graft expands. */
+function sourced(value, visit) {
+  if (Array.isArray(value)) {
+    for (const v of value) {
+      if (v && typeof v === "object" && typeof v._id === "string") visit(v);
+      sourced(v, visit);
+    }
+  } else if (value && typeof value === "object") {
+    for (const v of Object.values(value)) sourced(v, visit);
+  }
+}
+
+/** Alias to the compendium UUID it names, for every alias the entries hold. */
+async function aliasMap(entries) {
+  const aliases = new Set();
+  const add = (v) => { if (parseAlias(v)) aliases.add(v); };
+  for (const entry of entries) {
+    for (const s of Array.isArray(entry?.source) ? entry.source : [entry?.source]) add(s);
+    sourced(entry?.patch, (e) => add(e.source));
+  }
+  const map = new Map();
+  for (const alias of aliases) {
+    const { type, pack, file } = parseAlias(alias);
+    map.set(alias, referenceFor(type, await documentId(pack, file)));
+  }
+  return map;
+}
+
+/** A copy of the entry with every alias replaced, so nothing downstream sees one. */
+function expand(entry, map) {
+  const swap = (v) => map.get(v) ?? v;
+  const patch = structuredClone(entry.patch ?? null);
+  sourced(patch, (e) => { e.source = swap(e.source); });
+  return {
+    ...entry,
+    ...(entry.source === undefined ? {} : {
+      source: Array.isArray(entry.source) ? entry.source.map(swap) : swap(entry.source),
+    }),
+    ...(patch === null ? {} : { patch }),
+  };
+}
+
+/**
+ * Every alias replaced by the reference it names, so nothing downstream, graft
+ * included, ever sees one. Pure, and the only async part is the digest.
+ */
+export async function expandAliases(entries) {
+  const map = await aliasMap(entries);
+  return map.size === 0 ? entries : entries.map((e) => expand(e, map));
+}
+
+/**
+ * The `graftPreBuild` transform: turn every alias into the reference it names,
+ * and put the document each one wants in its pack.
+ */
+export async function transform(input) {
+  const entries = await expandAliases(input);
+
   const wanted = new Map();
   for (const entry of entries) for (const ref of referencesIn(entry)) wanted.set(ref.id, ref);
   if (wanted.size === 0) return entries;
@@ -81,6 +137,18 @@ export async function transform(entries) {
     for (const reason of o.warnings) warnings.push({ id: entry.id, reason });
   }
   return { entries: out, skipped, warnings };
+}
+
+/**
+ * Copy graft: name a Moulinette source the way its marketplace page does.
+ *
+ * The flag is on the world document and on the pack copy alike, so it cancels
+ * in the diff and costs the entry nothing.
+ */
+export function rewrite(entry, { document }) {
+  const flag = document.flags?.[MODULE_ID];
+  if (!flag || !parseReference(entry.source)) return entry;
+  return { ...entry, source: aliasFor(document.documentName, flag.pack, flag.file) };
 }
 
 /** Whether a data path exists, one directory listing per directory. */

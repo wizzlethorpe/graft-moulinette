@@ -15,22 +15,25 @@ export function hasDocument(type, id) {
  * `_stats` stays for `fromImport`, which migrates by the version recorded
  * there; only the publisher's own source claim goes.
  */
-export async function store(type, json, id) {
+export async function store(type, json, id, { pack, file }) {
   const data = { ...json, _stats: { ...json._stats } };
   delete data._id;
   delete data.folder;
   delete data._stats.compendiumSource;
   const prepared = (await getDocumentClass(type).fromImport(data)).toObject();
   prepared._id = id;
+  // On the pack copy as well as the world one, so it cancels in a Copy graft
+  // diff rather than travelling in every patch.
+  foundry.utils.setProperty(prepared, `flags.${MODULE_ID}`, { pack: String(pack), file });
 
   const collection = `${MODULE_ID}.${PACKS[type]}`;
-  const pack = game.packs.get(collection);
-  if (!pack) throw new Error(`Foundry knows no pack ${collection}; restart the server if the module was just installed`);
-  const wasLocked = pack.locked;
+  const into = game.packs.get(collection);
+  if (!into) throw new Error(`Foundry knows no pack ${collection}; restart the server if the module was just installed`);
+  const wasLocked = into.locked;
   const prior = game.settings.get("core", PACK_CONFIG)?.[collection];
-  if (wasLocked) await pack.configure({ locked: false });
+  if (wasLocked) await into.configure({ locked: false });
   try {
-    const existing = await pack.getDocument(id);
+    const existing = await into.getDocument(id);
     if (existing) await existing.update(prepared, { diff: false, recursive: false });
     else await getDocumentClass(type).create(prepared, { pack: collection, keepId: true, keepEmbeddedIds: true });
   } finally {
@@ -63,7 +66,7 @@ export async function materialise(refs, index, step = () => {}) {
       continue;
     }
     try {
-      await store(ref.type, await downloadDocument(row, index), ref.id);
+      await store(ref.type, await downloadDocument(row, index), ref.id, { pack: row.pack_id, file: row.url });
     } catch (err) {
       failed.set(ref.id, err.message);
     }

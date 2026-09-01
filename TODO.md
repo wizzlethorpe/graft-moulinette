@@ -13,6 +13,10 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 - Moulinette's asset type numbers are read from its bundle and pinned in
   `index.mjs`. A renumbering makes every download claim by name alone, which
   still works and is not reported.
+- An alias is not checked when it is written. Nothing can reach Moulinette at
+  authoring time, so a mistyped pack or filepath first shows up on a reader's
+  machine as "not in your Moulinette index". Importing through Moulinette and
+  pressing Copy graft cannot get this wrong, and is still the surer road.
 
 ## Wanted
 

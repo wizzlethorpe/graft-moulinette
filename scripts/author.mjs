@@ -41,9 +41,9 @@ async function adopt(document, changes) {
   const type = document.documentName;
   try {
     const id = await documentId(record.pack, record.file);
-    await store(type, record.document, id);
+    await store(type, record.document, id, record);
     const reference = referenceFor(type, id);
-    await document.update({ _stats: { compendiumSource: reference } });
+    await document.update({ _stats: { compendiumSource: reference }, [`flags.${MODULE_ID}`]: { pack: record.pack, file: record.file } });
     ui.notifications.info(game.i18n.format("GRAFTMOU.Adopted", { name: document.name }));
     console.log(`${MODULE_ID} | ${document.name} is now ${reference}`);
   } catch (err) {
@@ -89,6 +89,6 @@ export async function importAsset({ type, pack, file }) {
   const row = rowFor(index, pack, file);
   if (!row) throw new Error(`no ${file} in Moulinette pack ${pack}: your account may not include it, or it moved`);
   const id = await documentId(row.pack_id, row.url);
-  await store(type, await downloadDocument(row, index), id);
+  await store(type, await downloadDocument(row, index), id, { pack: row.pack_id, file: row.url });
   return referenceFor(type, id);
 }

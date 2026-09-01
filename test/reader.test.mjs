@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { referencesIn, outcome } from "../scripts/reader.mjs";
+import { referencesIn, outcome, expandAliases, rewrite } from "../scripts/reader.mjs";
 
 const MINE = "Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg";
 const THEIRS = "Compendium.some-maps.maps.Scene.aaaaaaaaaaaaaaaa";
@@ -59,4 +59,45 @@ test("a sourced object outside an array is not an embedded entry", () => {
   // graft only expands array members, so fetching for one would be work no
   // build ever uses.
   assert.deepEqual(referencesIn({ id: "a", patch: { system: { _id: "x", source: MINE } } }), []);
+});
+
+// ── the readable form ───────────────────────────────────────────────────────
+
+const ALIAS = "@moulinette/Scene/10698/json/scene/mad-lair.json";
+
+test("an alias becomes the reference it names, wherever it sits", async () => {
+  const other = "Compendium.other.p.Scene.aaaaaaaaaaaaaaaa";
+  const entries = await expandAliases([
+    { id: "a", source: ALIAS, patch: {} },
+    { id: "b", source: [other, ALIAS], patch: {} },
+    { id: "c", type: "Adventure", patch: { scenes: [{ _id: "s1", source: ALIAS, patch: { name: "x" } }] } },
+    { id: "d", patch: { name: "untouched" } },
+  ]);
+  // MINE names the same asset, so the two spellings have to agree.
+  assert.equal(entries[0].source, MINE);
+  assert.deepEqual(entries[1].source, [other, MINE]);
+  assert.equal(entries[2].patch.scenes[0].source, MINE);
+  assert.deepEqual(entries[2].patch.scenes[0].patch, { name: "x" }, "the rest of the entry is untouched");
+  assert.deepEqual(entries[3], { id: "d", patch: { name: "untouched" } });
+});
+
+test("entries with no alias are returned as they came", async () => {
+  const before = [{ id: "a", source: THEIRS, patch: { name: "x" } }];
+  assert.equal(await expandAliases(before), before);
+});
+
+test("Copy graft names a Moulinette source the way its page does", () => {
+  const document = {
+    documentName: "Scene", name: "Mad Lair",
+    flags: { "graft-moulinette": { pack: "10698", file: "json/scene/mad-lair.json" } },
+  };
+  const out = rewrite({ id: "a", source: MINE, patch: { name: "Mine" } }, { document });
+  assert.equal(out.source, ALIAS);
+  assert.deepEqual(out.patch, { name: "Mine" });
+});
+
+test("a document this module did not adopt keeps the source graft gave it", () => {
+  assert.equal(rewrite({ id: "a", source: THEIRS }, { document: { flags: {} } }).source, THEIRS);
+  assert.equal(rewrite({ id: "a", patch: {} }, { document: { documentName: "Scene", flags: { "graft-moulinette": { pack: "1", file: "a.json" } } } }).source,
+    undefined, "content with no source at all");
 });

@@ -19,6 +19,14 @@ Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg
 
 An ordinary compendium UUID. The pack is one this module declares, one per document type (`scenes`, `playlists`, `journal`, `macros`), and the id is a digest of the asset's Moulinette pack number and in-pack filepath, so it is the same sixteen characters on every machine. To graft, the source is a document like any other; to this module, it says exactly which asset to fetch.
 
+Nobody can work that digest out by hand, so a source may also be written the way a marketplace page reads:
+
+```
+@moulinette/Scene/11948/json/scene/02-adamantine-mining.json
+```
+
+The pack number and filepath are the two things that page shows you; the type says which pack it lands in, since this module has no way to ask Moulinette at authoring time. Both spellings name the same document, and the build turns the alias into the UUID before graft resolves anything, so nothing downstream ever sees one. **Copy graft** writes the alias, so what you paste reads like what you would have written.
+
 ## Authoring
 
 Import through Moulinette as you always have. When the document lands in your world, this module writes a pristine copy into its own pack under that id and records the pack copy as the world document's source. Edit the world copy and press **Copy graft**: graft diffs it against the pack copy and produces an entry naming Moulinette rather than carrying the scene.
@@ -27,7 +35,7 @@ Import through Moulinette as you always have. When the document lands in your wo
 id: mySewerLair000001
 type: Scene
 pack: my-scenes
-source: Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg
+source: "@moulinette/Scene/10698/json/scene/mad-lair.json"
 patch:
   name: The Sewer Lair
   walls: [...]

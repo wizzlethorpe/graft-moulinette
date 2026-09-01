@@ -2,7 +2,7 @@
 
 import { MODULE_ID } from "./refs.mjs";
 import { watchImports, readopt, importAsset } from "./author.mjs";
-import { transform, fetchFiles } from "./reader.mjs";
+import { transform, rewrite, fetchFiles } from "./reader.mjs";
 
 const warn = (key) => (err) => ui.notifications.warn(game.i18n.format(key, { reason: err.message }));
 
@@ -22,6 +22,10 @@ Hooks.once("ready", () => {
 
 Hooks.on("graftPreBuild", (_moduleId, register) => {
   register({ id: MODULE_ID, label: "Moulinette", phase: "sources", transform });
+});
+
+Hooks.on("graftExport", (register) => {
+  register({ id: MODULE_ID, rewrite });
 });
 
 Hooks.on("graftBuilt", (_moduleId, { built }) => {
