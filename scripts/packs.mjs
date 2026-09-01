@@ -1,12 +1,12 @@
-// Writing into this module's own compendium packs.
+// Writing into this module's own packs, and filling them from the reader's index.
 
 import { MODULE_ID, PACKS } from "./refs.mjs";
 import { documentIds, downloadDocument } from "./index.mjs";
 
 const PACK_CONFIG = "compendiumConfiguration";
 
-export function hasDocument({ pack, id }) {
-  return !!game.packs.get(`${MODULE_ID}.${pack}`)?.index.has(id);
+export function hasDocument(type, id) {
+  return !!game.packs.get(`${MODULE_ID}.${PACKS[type]}`)?.index.has(id);
 }
 
 /**
@@ -54,7 +54,7 @@ export async function materialise(refs, index, step = () => {}) {
   const failed = new Map();
   for (const ref of refs) {
     step(ref.id);
-    if (hasDocument(ref)) continue;
+    if (hasDocument(ref.type, ref.id)) continue;
     const row = rows.get(ref.id);
     if (!row) {
       failed.set(ref.id, `${ref.id} is not in your Moulinette index: your account may not include it, or it moved`);

@@ -46,7 +46,7 @@ function packFolder(asset) {
   }
 }
 
-const rowKey = (pack, file) => `${pack}\n${file}`;
+export const rowKey = (pack, file) => `${pack}\n${file}`;
 
 /**
  * The index arranged for looking paths up: pack folder to `pack_id`, and

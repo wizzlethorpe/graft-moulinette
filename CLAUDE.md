@@ -22,7 +22,8 @@ The README's Layout section names the files. The line to keep: `refs.mjs` and `p
 Probe it against the live world; `typeof` in the console costs seconds. Things this module relies on and has not proven in every Foundry version:
 
 - `document.update({ _stats: { compendiumSource } })` persists on a world document.
-- Moulinette's `/asset/<id>` descriptor carries `pack_ref`, `filepath` and its numeric `type`, and `importFromJSON` fills the placeholder through `update` with `name` in the changes.
+- Moulinette's `/asset/<id>` descriptor carries `pack_ref`, `filepath` and its numeric `type`.
+- `materialise` in `packs.mjs` decides which references to fetch and carries on past a failure, and has no test: it is bound to Foundry through `hasDocument` and `store`.
 - A module pack can be unlocked, written and re-locked from the client the way graft does it.
 
 ## Style

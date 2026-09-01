@@ -11,7 +11,7 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
   Moulinette action that downloads a document without importing it leaves a
   record the next same-named document claims.
 - Moulinette's asset type numbers are read from its bundle and pinned in
-  `author.mjs`. A renumbering makes every download claim by name alone, which
+  `index.mjs`. A renumbering makes every download claim by name alone, which
   still works and is not reported.
 
 ## Wanted

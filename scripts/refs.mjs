@@ -30,9 +30,9 @@ export function referenceFor(type, id) {
 
 const REFERENCE = new RegExp(`^Compendium\\.${MODULE_ID}\\.([a-z]+)\\.([A-Za-z]+)\\.([A-Za-z0-9]{16})$`);
 
-/** `{ pack, type, id }` for a source naming one of this module's packs, or null. */
+/** `{ type, id }` for a source naming one of this module's packs, or null. */
 export function parseReference(uuid) {
   const m = typeof uuid === "string" ? REFERENCE.exec(uuid) : null;
   if (!m || PACKS[m[2]] !== m[1]) return null;
-  return { pack: m[1], type: m[2], id: m[3] };
+  return { type: m[2], id: m[3] };
 }

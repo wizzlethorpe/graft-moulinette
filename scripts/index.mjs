@@ -2,8 +2,8 @@
 // on its download that tells the author's side what was fetched. Internals
 // are checked for rather than assumed.
 
-import { documentId } from "./refs.mjs";
-import { lookup } from "./paths.mjs";
+import { MODULE_ID, documentId } from "./refs.mjs";
+import { lookup, rowKey } from "./paths.mjs";
 
 /** The collection that fetches `/all-assets`: everything the account can reach. */
 const CACHED_COLLECTION = "mou-cloud-cached";
@@ -12,7 +12,7 @@ const CACHED_COLLECTION = "mou-cloud-cached";
 const TYPES = { 1: "Scene", 8: "JournalEntry", 9: "Playlist", 10: "Macro" };
 
 /** The cloud collection, or null when it lacks what this module calls on it. */
-export function cachedCollection(mod = game.modules.get("moulinette")) {
+function cachedCollection(mod = game.modules.get("moulinette")) {
   const c = mod?.collections?.find((c) => c.getId?.() === CACHED_COLLECTION);
   return c?.initialize && c.selectAsset && c.downloadAsset ? c : null;
 }
@@ -27,13 +27,14 @@ export async function loadIndex() {
   // The setting's default, so it means signed out.
   if (mod.getSessionId() === "anonymous") throw new Error("you are not signed in to Moulinette; sign in and try again");
 
+  // Moulinette never clears its error on a later success, and keeps the empty
+  // list a failure leaves, so both are reset here or a retry could never work.
+  collection.error = 0;
+  if (mod.cache.allAssets?.length === 0) mod.cache.allAssets = null;
   await collection.initialize();            // fills cache.allAssets; warm after the first call
   const error = collection.getCollectionError?.();
-  if (error) {
-    mod.cache.allAssets = null;             // or every later call would skip the fetch and repeat this
-    throw new Error(`Moulinette could not load your asset index: ${error}`);
-  }
-  const assets = mod.cache?.allAssets;
+  if (error) throw new Error(`Moulinette could not load your asset index: ${error}`);
+  const assets = mod.cache.allAssets;
   if (!Array.isArray(assets)) throw new Error("Moulinette's asset index is not a list; this needs updating");
   return { mod, collection, assets };
 }
@@ -64,7 +65,7 @@ let original = null;
 export function watchDownloads(onDocument) {
   const collection = cachedCollection();
   if (!collection) {
-    console.warn("graft-moulinette | Moulinette's cloud collection is not where this module expects it; imports will not be adopted");
+    ui.notifications.warn(game.i18n.localize("GRAFTMOU.NoCollection"));
     return;
   }
   original = collection.downloadAsset.bind(collection);
@@ -110,6 +111,11 @@ function cacheFor(assets) {
 
 export function lookupFor(index) {
   return cacheFor(index.assets).lookup;
+}
+
+/** The index row for a pack number and in-pack path, or undefined. */
+export function rowFor(index, pack, file) {
+  return lookupFor(index).rows.get(rowKey(pack, file));
 }
 
 /** Document id to index row, for every `.json` asset the account can reach. */

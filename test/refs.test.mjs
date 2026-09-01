@@ -22,7 +22,7 @@ test("a different pack or path is a different id", async () => {
 test("a reference names the pack for its type, and parses back", () => {
   const uuid = referenceFor("Scene", "CwVVyANWmNpt3Hfg");
   assert.equal(uuid, "Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg");
-  assert.deepEqual(parseReference(uuid), { pack: "scenes", type: "Scene", id: "CwVVyANWmNpt3Hfg" });
+  assert.deepEqual(parseReference(uuid), { type: "Scene", id: "CwVVyANWmNpt3Hfg" });
   for (const type of Object.keys(PACKS)) assert.ok(parseReference(referenceFor(type, "aaaaaaaaaaaaaaaa")));
 });
 

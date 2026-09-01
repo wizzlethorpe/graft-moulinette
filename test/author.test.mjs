@@ -25,9 +25,8 @@ test("Moulinette's type numbers map to the documents this module keeps", () => {
 
 test("a file download is not a document", () => {
   assert.equal(downloaded({ pack_ref: 10698, filepath: "scenes/mad-lair.webp" }, { path: "moulinette-v2/cloud/x.webp" }), null);
-  // A ScenePacker pack answers with a message too, but it is a list of files
-  // to hand to another module, not a document.
-  assert.equal(downloaded({ pack_ref: 10698, filepath: "maps/pack.webp", type: 98 }, { path: "", message: "{}" }), null);
+  assert.equal(downloaded({ pack_ref: 10698, filepath: "maps/pack.webp" }, { path: "", message: "{}" }), null,
+    "a message without a .json filepath");
   assert.equal(downloaded({ pack_ref: 10698, filepath: "json/scene/a.json" }, false), null, "a download that failed");
   assert.equal(downloaded({ pack_ref: 1, filepath: "json/scene/a.json" }, { message: "{not json" }), null);
 });
