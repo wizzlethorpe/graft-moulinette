@@ -46,6 +46,8 @@ function packFolder(asset) {
   }
 }
 
+const rowKey = (pack, file) => `${pack}\n${file}`;
+
 /**
  * The index arranged for looking paths up: pack folder to `pack_id`, and
  * `pack_id` plus `url` to the row.
@@ -55,7 +57,7 @@ export function lookup(assets) {
   const rows = new Map();
   const mapped = new Set();                 // one preview parse per pack, not per row
   for (const asset of assets) {
-    rows.set(`${asset.pack_id}\n${asset.url}`, asset);
+    rows.set(rowKey(asset.pack_id, asset.url), asset);
     if (mapped.has(asset.pack_id)) continue;
     const folder = packFolder(asset);
     if (!folder) continue;
@@ -70,7 +72,7 @@ export function assetFor(path, { folders, rows }) {
   for (const [folder, pack] of folders) {
     const prefix = `${LOCAL_ROOT}${folder}/`;
     if (!path.startsWith(prefix)) continue;
-    return rows.get(`${pack}\n${path.slice(prefix.length)}`) ?? null;
+    return rows.get(rowKey(pack, path.slice(prefix.length))) ?? null;
   }
   return null;
 }

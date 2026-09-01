@@ -4,7 +4,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { downloaded, makeLedger, claimable } from "../scripts/author.mjs";
+import { downloaded } from "../scripts/index.mjs";
+import { makeLedger, claimable } from "../scripts/author.mjs";
 
 const SCENE = JSON.stringify({ name: "Mad Lair", background: { src: "moulinette-v2/cloud/tmc/mad-lairs-2.3/scenes/mad-lair.webp" } });
 
@@ -17,8 +18,16 @@ test("a document download is remembered by pack, file and content", () => {
     "a type number this module does not know");
 });
 
+test("Moulinette's type numbers map to the documents this module keeps", () => {
+  const typeOf = (n) => downloaded({ pack_ref: 1, filepath: "a.json", type: n }, { message: "{}" }).type;
+  assert.deepEqual([1, 8, 9, 10].map(typeOf), ["Scene", "JournalEntry", "Playlist", "Macro"]);
+});
+
 test("a file download is not a document", () => {
   assert.equal(downloaded({ pack_ref: 10698, filepath: "scenes/mad-lair.webp" }, { path: "moulinette-v2/cloud/x.webp" }), null);
+  // A ScenePacker pack answers with a message too, but it is a list of files
+  // to hand to another module, not a document.
+  assert.equal(downloaded({ pack_ref: 10698, filepath: "maps/pack.webp", type: 98 }, { path: "", message: "{}" }), null);
   assert.equal(downloaded({ pack_ref: 10698, filepath: "json/scene/a.json" }, false), null, "a download that failed");
   assert.equal(downloaded({ pack_ref: 1, filepath: "json/scene/a.json" }, { message: "{not json" }), null);
 });

@@ -5,7 +5,7 @@
 
 Makes [Moulinette](https://www.moulinette.cloud/) content graftable. Import a scene through Moulinette's own browser and it becomes a compendium source a [graft](https://github.com/wizzlethorpe/graft) can name; a reader's build fetches it, and the files it uses, from their own Moulinette subscription. Nothing of the publisher's travels in a graft.
 
-**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.7.0 or later, the first graft with the `graftPreBuild` hook.
+**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.7.0 or later.
 
 ```
 https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json
@@ -63,7 +63,7 @@ After every build, the documents graft made are scanned for `moulinette-v2/cloud
 ```
 scripts/refs.mjs     the reference form and its id. Pure.
 scripts/paths.mjs    recognising a Moulinette path and matching it to an asset. Pure.
-scripts/index.mjs    the reader's Moulinette index and downloads; the one file touching Moulinette's internals.
+scripts/index.mjs    everything that touches Moulinette: its index, its downloads, the wrap that watches them.
 scripts/packs.mjs    writing into this module's packs.
 scripts/author.mjs   adopting what Moulinette imports.
 scripts/reader.mjs   the graftPreBuild transform and the post-build file fetch.

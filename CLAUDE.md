@@ -9,7 +9,7 @@ node --test 'test/*.test.mjs'     # no Foundry needed
 
 ## Shape
 
-The README's Layout section names the files. The line to keep: `refs.mjs` and `paths.mjs` have no Foundry in them and carry the decisions, and every test is against those or against a pure function pulled out of a Foundry file (`downloaded`, `makeLedger`, `claimable`, `referencesIn`, `outcome`). `index.mjs` is the only file that reaches into Moulinette's internals, and checks for each thing it needs rather than assuming it; anything new that touches Moulinette goes there.
+The README's Layout section names the files. The line to keep: `refs.mjs` and `paths.mjs` have no Foundry in them and carry the decisions, and every test is against those or against a pure function pulled out of a Foundry file (`downloaded`, `makeLedger`, `claimable`, `referencesIn`, `outcome`). `index.mjs` is the only file that reaches into Moulinette's internals, including the wrap on its download and the table of its asset type numbers, and checks for each thing it needs rather than assuming it; anything new that touches Moulinette goes there.
 
 ## What is fixed by others
 
