@@ -5,7 +5,7 @@
 import { MODULE_ID, parseReference } from "./refs.mjs";
 import { localPaths, assetFor } from "./paths.mjs";
 import { loadIndex, downloadDocument, downloadFile, documentIds, lookupFor } from "./index.mjs";
-import { hasDocument, prepare, writeDocument } from "./packs.mjs";
+import { hasDocument, store } from "./packs.mjs";
 
 /** The references to this module's packs that an entry's source names. */
 export function referencesIn(entry) {
@@ -16,23 +16,17 @@ export function referencesIn(entry) {
 
 /**
  * Whether an entry survives the references that could not be materialised.
- *
- * A lone source that failed sinks the entry, and the reason is reported here
- * rather than left for graft's own "did not resolve". One failure among a
- * list of fallbacks is a warning: the others may still resolve.
+ * With no source left it sinks, reported here rather than by graft's own
+ * "did not resolve"; with a fallback left, the failures are warnings.
  *
  * @param {Map<string,string>} failed  reference id to reason
  */
 export function outcome(entry, failed) {
   const problems = referencesIn(entry).filter((r) => failed.has(r.id)).map((r) => failed.get(r.id));
   if (problems.length === 0) return { keep: true, warnings: [] };
-  if (!Array.isArray(entry.source)) return { keep: false, reason: problems[0] };
+  const sources = Array.isArray(entry.source) ? entry.source.length : 1;
+  if (problems.length === sources) return { keep: false, reason: problems.join("; ") };
   return { keep: true, warnings: problems };
-}
-
-function progress() {
-  const p = game.modules.get("graft")?.api?.progress;
-  return { phase: (n, c) => p?.phase?.(n, c), step: (m) => p?.step?.(m) };
 }
 
 /** The `graftPreBuild` transform: put every referenced document in its pack. */
@@ -50,7 +44,7 @@ export async function transform(entries) {
   }
   if (index) {
     const rows = await documentIds(index);
-    const bar = progress();
+    const bar = game.modules.get("graft").api.progress;
     bar.phase("Moulinette", wanted.size);
     for (const ref of wanted.values()) {
       bar.step(ref.id);
@@ -61,8 +55,7 @@ export async function transform(entries) {
         continue;
       }
       try {
-        const json = await downloadDocument(row, index);
-        await writeDocument(ref.type, await prepare(ref.type, json, ref.id, { pack: row.pack_id, file: row.url }));
+        await store(ref.type, await downloadDocument(row, index), ref.id);
       } catch (err) {
         failed.set(ref.id, err.message);
       }
@@ -100,19 +93,10 @@ function presence() {
 /** After a build: fetch every Moulinette file the built documents name and the reader lacks. */
 export async function fetchFiles(built) {
   const paths = new Set();
-  for (const uuid of built) {
-    const doc = await fromUuid(uuid);
-    if (doc) localPaths(doc.toObject(), paths);
-  }
+  for (const uuid of built) localPaths((await fromUuid(uuid)).toObject(), paths);
   if (paths.size === 0) return;
 
-  let index;
-  try {
-    index = await loadIndex();
-  } catch (err) {
-    ui.notifications.warn(game.i18n.format("GRAFTMOU.NoIndex", { count: paths.size, reason: err.message }));
-    return;
-  }
+  const index = await loadIndex();
   const found = lookupFor(index);
   const present = presence();
   const fetched = [];

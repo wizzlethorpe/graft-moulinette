@@ -1,7 +1,7 @@
 {
   "GRAFTMOU.Adopted": "{name} is now a graft source. Copy graft on it will name Moulinette rather than carry the document.",
   "GRAFTMOU.AdoptFailed": "{name} was imported, but could not be made a graft source: {reason}",
-  "GRAFTMOU.Fetched": "Moulinette: fetched {fetched} file(s), {problems} left unresolved. See the console for any that were.",
-  "GRAFTMOU.Missing": "Graft: Moulinette needs the {module} module enabled, and is doing nothing without it.",
-  "GRAFTMOU.NoIndex": "Graft: Moulinette could not fetch {count} file(s) the build names, because {reason}."
+  "GRAFTMOU.Fetched": "Moulinette: fetched {fetched} file(s), {problems} left unresolved.",
+  "GRAFTMOU.FetchFailed": "Graft: Moulinette could not fetch the files this build names: {reason}",
+  "GRAFTMOU.ReadoptFailed": "Graft: Moulinette could not refill its packs for the documents in this world: {reason}"
 }

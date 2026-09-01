@@ -20,14 +20,48 @@
   "esmodules": [
     "scripts/main.mjs"
   ],
+  "flags": {
+    "graft": {
+      "entries": []
+    }
+  },
   "packs": [
-    { "name": "scenes", "label": "Moulinette Scenes", "path": "packs/scenes", "type": "Scene" },
-    { "name": "playlists", "label": "Moulinette Playlists", "path": "packs/playlists", "type": "Playlist" },
-    { "name": "journal", "label": "Moulinette Journal", "path": "packs/journal", "type": "JournalEntry" },
-    { "name": "macros", "label": "Moulinette Macros", "path": "packs/macros", "type": "Macro" }
+    {
+      "name": "scenes",
+      "label": "Moulinette Scenes",
+      "path": "packs/scenes",
+      "type": "Scene"
+    },
+    {
+      "name": "playlists",
+      "label": "Moulinette Playlists",
+      "path": "packs/playlists",
+      "type": "Playlist"
+    },
+    {
+      "name": "journal",
+      "label": "Moulinette Journal",
+      "path": "packs/journal",
+      "type": "JournalEntry"
+    },
+    {
+      "name": "macros",
+      "label": "Moulinette Macros",
+      "path": "packs/macros",
+      "type": "Macro"
+    }
   ],
   "packFolders": [
-    { "name": "Moulinette", "sorting": "a", "packs": ["scenes", "playlists", "journal", "macros"] }
+    {
+      "name": "Moulinette",
+      "sorting": "a",
+      "packs": [
+        "scenes",
+        "playlists",
+        "journal",
+        "macros"
+      ]
+    }
   ],
   "relationships": {
     "requires": [
@@ -35,12 +69,16 @@
         "id": "graft",
         "type": "module",
         "manifest": "https://github.com/wizzlethorpe/graft/releases/latest/download/module.json",
-        "compatibility": { "minimum": "0.7.0" }
+        "compatibility": {
+          "minimum": "0.7.0"
+        }
       },
       {
         "id": "moulinette",
         "type": "module",
-        "compatibility": { "minimum": "2.3.0" }
+        "compatibility": {
+          "minimum": "2.3.0"
+        }
       }
     ]
   },

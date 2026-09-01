@@ -10,10 +10,9 @@
 
 export const LOCAL_ROOT = "moulinette-v2/cloud/";
 
-// One expression both decides and extracts, so a truncated match is not
-// representable. The optional prefix is the base URL a reader storing on a
-// bucket sees in front of the same tree.
-const WHOLE_PATH = /^(?:[a-z][a-z0-9+.-]*:\/\/[^\s"']*\/)?(moulinette-v2\/cloud\/[^?]+?)(?:\?.*)?$/i;
+// The optional prefix is the base URL a reader storing on a bucket sees in
+// front of the same tree.
+const WHOLE_PATH = /^(?:[a-z][a-z0-9+.-]*:\/\/[^\s"']*\/)?(moulinette-v2\/cloud\/[^?]+?)(?:\?.*)?$/;
 
 /** The local path a string is, or null when it is not one, or only contains one. */
 export function localPath(value) {
@@ -56,7 +55,6 @@ export function lookup(assets) {
   const rows = new Map();
   const mapped = new Set();                 // one preview parse per pack, not per row
   for (const asset of assets) {
-    if (asset?.pack_id == null || typeof asset.url !== "string") continue;
     rows.set(`${asset.pack_id}\n${asset.url}`, asset);
     if (mapped.has(asset.pack_id)) continue;
     const folder = packFolder(asset);

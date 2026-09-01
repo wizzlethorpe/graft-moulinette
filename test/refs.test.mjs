@@ -35,6 +35,5 @@ test("anything not naming one of this module's packs is not a reference", () => 
 });
 
 test("a type with no pack has no reference", () => {
-  // Actor and Item packs must declare a system, so there is none to name yet.
   assert.throws(() => referenceFor("Actor", "aaaaaaaaaaaaaaaa"), /no pack holds an? Actor/);
 });

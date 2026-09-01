@@ -5,7 +5,7 @@
 
 Makes [Moulinette](https://www.moulinette.cloud/) content graftable. Import a scene through Moulinette's own browser and it becomes a compendium source a [graft](https://github.com/wizzlethorpe/graft) can name; a reader's build fetches it, and the files it uses, from their own Moulinette subscription. Nothing of the publisher's travels in a graft.
 
-**Install:** paste this into Foundry's *Install Module* dialog. Needs graft 0.7.0 or later and Moulinette.
+**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.7.0 or later, the first graft with the `graftPreBuild` hook.
 
 ```
 https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json
@@ -41,6 +41,8 @@ await game.modules.get("graft-moulinette").api.import({ type: "Scene", pack: 106
 ```
 
 Files stay where Moulinette put them, under `moulinette-v2/cloud/<creator>/<pack>/`, and a graft names them by that path. Nothing is rewritten.
+
+Updating this module replaces its packs, as any module update does. Every adopted document in the world records which asset it came from, so the next world load refills the packs from your subscription.
 
 ## Building
 

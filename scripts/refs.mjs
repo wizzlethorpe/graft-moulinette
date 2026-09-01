@@ -10,10 +10,7 @@
 
 export const MODULE_ID = "graft-moulinette";
 
-/**
- * Pack per document type. Foundry requires an Actor or Item pack to declare a
- * system, so those types would need one pack per system and have none yet.
- */
+/** Pack per document type. */
 export const PACKS = { Scene: "scenes", Playlist: "playlists", JournalEntry: "journal", Macro: "macros" };
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

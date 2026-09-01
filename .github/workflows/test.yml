@@ -19,8 +19,18 @@ jobs:
         run: |
           jq -e '.id == "graft-moulinette" and (.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' module.json
           jq -e '.languages[0].path == "lang/en.json"' module.json
-          jq -e '[.packs[].name] == ["scenes", "playlists", "journal", "macros"]' module.json
           jq -e . lang/en.json > /dev/null
+      - name: Check the packs declared match the packs the code names
+        run: |
+          node -e '
+            import("./scripts/refs.mjs").then(({ PACKS }) => {
+              const declared = require("./module.json").packs;
+              const wrong = declared.filter((p) => PACKS[p.type] !== p.name);
+              const missing = Object.entries(PACKS).filter(([t, n]) => !declared.some((p) => p.type === t && p.name === n));
+              if (wrong.length || missing.length) { console.error({ wrong, missing }); process.exit(1); }
+              console.log(`${declared.length} packs, all matching`);
+            });
+          '
       - name: Check every localisation key used is defined
         run: |
           node -e '

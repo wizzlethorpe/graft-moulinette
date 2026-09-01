@@ -4,19 +4,15 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 
 ## Known limits
 
-- Actor and Item packs need a system each. Foundry refuses a system-agnostic
-  pack of either type, so serving them means one declared pack per system and
-  a reference form that names it.
-- The author-side match is by name. Moulinette creates a placeholder and fills
-  it by `importFromJSON`, so nothing ties the update to the download but the
-  document's name and the order of events. Two imports of same-named scenes in
-  quick succession could claim each other's download.
-- Adoption is forward-only. Content imported before this module was watching
-  has no pack copy and needs `api.import`, which wants the pack number and
-  in-pack path typed by hand.
-- The post-build fetch checks presence on the `data` storage only, so a reader
-  storing Moulinette content on a bucket is told every file is missing and
-  then that each landed elsewhere.
+- The author-side match is by name and type. Moulinette creates a placeholder
+  and fills it by `importFromJSON`, so nothing ties the update to the download
+  but the document's name and the order of events. Two imports of same-named
+  scenes in quick succession could claim each other's download, and a
+  Moulinette action that downloads a document without importing it leaves a
+  record the next same-named document claims.
+- Moulinette's asset type numbers are read from its bundle and pinned in
+  `author.mjs`. A renumbering makes every download claim by name alone, which
+  still works and is not reported.
 
 ## Wanted
 

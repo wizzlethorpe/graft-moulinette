@@ -9,11 +9,7 @@ node --test 'test/*.test.mjs'     # no Foundry needed
 
 ## Shape
 
-Two pure files and four that need Foundry. Keep the line where it is.
-
-- `refs.mjs` and `paths.mjs` have no Foundry in them and carry the decisions: what an id is, what a reference parses to, whether a string is a Moulinette path, which index row a path names. Every test is against these or against a pure function pulled out of the Foundry files (`downloaded`, `makeLedger`, `referencesIn`, `outcome`).
-- `index.mjs` is the only file that reaches into Moulinette's internals, and it checks for each thing it needs rather than assuming it. Anything new that touches Moulinette goes here.
-- `author.mjs` wraps one Moulinette method and listens to Foundry's own create and update hooks. `reader.mjs` is graft's `graftPreBuild` transform and its `graftBuilt` listener.
+The README's Layout section names the files. The line to keep: `refs.mjs` and `paths.mjs` have no Foundry in them and carry the decisions, and every test is against those or against a pure function pulled out of a Foundry file (`downloaded`, `makeLedger`, `claimable`, `referencesIn`, `outcome`). `index.mjs` is the only file that reaches into Moulinette's internals, and checks for each thing it needs rather than assuming it; anything new that touches Moulinette goes there.
 
 ## What is fixed by others
 
@@ -26,7 +22,7 @@ Two pure files and four that need Foundry. Keep the line where it is.
 Probe it against the live world; `typeof` in the console costs seconds. Things this module relies on and has not proven in every Foundry version:
 
 - `document.update({ _stats: { compendiumSource } })` persists on a world document.
-- Moulinette's `/asset/<id>` descriptor carries `pack_ref` and `filepath`, and `importFromJSON` fills the placeholder through `update` with `name` in the changes.
+- Moulinette's `/asset/<id>` descriptor carries `pack_ref`, `filepath` and its numeric `type`, and `importFromJSON` fills the placeholder through `update` with `name` in the changes.
 - A module pack can be unlocked, written and re-locked from the client the way graft does it.
 
 ## Style

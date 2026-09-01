@@ -27,6 +27,12 @@ test("one failure in a list of fallbacks is a warning, since the rest may resolv
     { keep: true, warnings: ["not in your Moulinette index"] });
 });
 
+test("a list with no source left sinks too, rather than being reported twice", () => {
+  const other = "Compendium.graft-moulinette.scenes.Scene.aaaaaaaaaaaaaaaa";
+  const failed = new Map([["CwVVyANWmNpt3Hfg", "gone"], ["aaaaaaaaaaaaaaaa", "also gone"]]);
+  assert.deepEqual(outcome({ id: "e1", source: [MINE, other] }, failed), { keep: false, reason: "gone; also gone" });
+});
+
 test("an entry whose references all materialised, or that has none, is untouched", () => {
   const failed = new Map([["zzzzzzzzzzzzzzzz", "gone"]]);
   assert.deepEqual(outcome({ id: "e1", source: MINE }, failed), { keep: true, warnings: [] });
