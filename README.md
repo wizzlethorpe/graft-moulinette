@@ -42,6 +42,8 @@ await game.modules.get("graft-moulinette").api.import({ type: "Scene", pack: 106
 
 Files stay where Moulinette put them, under `moulinette-v2/cloud/<creator>/<pack>/`, and a graft names them by that path. Nothing is rewritten.
 
+A Moulinette *Map* is a bare image with no document behind it: Moulinette builds the scene around the picture itself. Copy graft on one carries that scene whole, which is only defaults and the image's path, and the image resolves for a reader the same way as any other file. Only a Moulinette *Scene*, the kind that arrives with walls and lights, becomes a source.
+
 Updating this module replaces its packs, as any module update does. Every adopted document in the world records which asset it came from, so the next world load refills the packs from your subscription.
 
 ## Building
