@@ -14,13 +14,19 @@ function topReferences(entry) {
   return sources.map(parseReference).filter(Boolean);
 }
 
-/** Those named by `{ _id, source, patch }` entries inside the patch, at any depth: an Adventure's scenes, an actor's items. */
+/**
+ * Those named by `{ _id, source, patch }` members of a keyed array: an
+ * Adventure's scenes, an actor's items. Array members only, since that is
+ * what graft expands.
+ */
 function embeddedReferences(value, into = []) {
   if (Array.isArray(value)) {
-    for (const v of value) embeddedReferences(v, into);
+    for (const v of value) {
+      const ref = typeof v?._id === "string" ? parseReference(v.source) : null;
+      if (ref) into.push(ref);
+      embeddedReferences(v, into);
+    }
   } else if (value && typeof value === "object") {
-    const ref = typeof value._id === "string" ? parseReference(value.source) : null;
-    if (ref) into.push(ref);
     for (const v of Object.values(value)) embeddedReferences(v, into);
   }
   return into;
@@ -33,20 +39,19 @@ export function referencesIn(entry) {
 /**
  * Whether an entry survives the references that could not be materialised.
  * With no source left it sinks, reported here rather than by graft's own
- * "did not resolve"; with a fallback left, the failures are warnings. An
- * embedded source has no fallback, so one failing sinks the entry, as graft
- * itself would.
+ * "did not resolve"; with a fallback left, the failures are warnings.
  *
  * @param {Map<string,string>} failed  reference id to reason
  */
 export function outcome(entry, failed) {
   const reasons = (refs) => refs.filter((r) => failed.has(r.id)).map((r) => failed.get(r.id));
   const embedded = reasons(embeddedReferences(entry?.patch));
-  if (embedded.length > 0) return { keep: false, reason: embedded.join("; ") };
   const problems = reasons(topReferences(entry));
-  if (problems.length === 0) return { keep: true, warnings: [] };
-  const sources = Array.isArray(entry.source) ? entry.source.length : 1;
-  if (problems.length === sources) return { keep: false, reason: problems.join("; ") };
+  const sources = Array.isArray(entry.source) ? entry.source.length : entry.source ? 1 : 0;
+  // An embedded source has no fallback, so one failing sinks the entry.
+  if (embedded.length > 0 || (problems.length > 0 && problems.length === sources)) {
+    return { keep: false, reason: [...embedded, ...problems].join("; ") };
+  }
   return { keep: true, warnings: problems };
 }
 

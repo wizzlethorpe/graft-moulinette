@@ -46,8 +46,17 @@ test("a source inside the patch counts too, at any depth", () => {
   assert.deepEqual(referencesIn(entry).map((r) => r.id), ["CwVVyANWmNpt3Hfg"]);
 });
 
-test("an embedded source that failed sinks the entry, since graft would refuse it anyway", () => {
-  const entry = { id: "adv", source: THEIRS, patch: { scenes: [{ _id: "s1", source: MINE, patch: {} }] } };
+test("an embedded source that failed sinks the entry, even with a top-level fallback left", () => {
+  // The top-level list would survive on its own; the embedded source has no
+  // fallback, so graft would refuse the entry whatever this said.
+  const OTHER = "Compendium.graft-moulinette.scenes.Scene.aaaaaaaaaaaaaaaa";
+  const entry = { id: "adv", source: [THEIRS, OTHER], patch: { scenes: [{ _id: "s1", source: MINE, patch: {} }] } };
   const failed = new Map([["CwVVyANWmNpt3Hfg", "not in your Moulinette index"]]);
   assert.deepEqual(outcome(entry, failed), { keep: false, reason: "not in your Moulinette index" });
+});
+
+test("a sourced object outside an array is not an embedded entry", () => {
+  // graft only expands array members, so fetching for one would be work no
+  // build ever uses.
+  assert.deepEqual(referencesIn({ id: "a", patch: { system: { _id: "x", source: MINE } } }), []);
 });

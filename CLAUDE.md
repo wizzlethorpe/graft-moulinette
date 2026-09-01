@@ -19,7 +19,14 @@ The README's Layout section names the files. The line to keep: `refs.mjs` and `p
 
 ## Before shipping a change that touches Foundry
 
-Probe it against the live world; `typeof` in the console costs seconds. Proven live so far: `_stats.compendiumSource` is writable on a world document; a module pack unlocks, takes a write and re-locks from the client with its folder intact; `importFromJSON` fills Moulinette's placeholder through an `update` carrying `name`; the deterministic id is stable across imports. Not proven, because it is bound to Foundry through `hasDocument` and `store`: `materialise` in `packs.mjs`, which decides which references to fetch and carries on past a failure.
+Probe it against the live world; `typeof` in the console costs seconds. Proven live:
+
+- `_stats.compendiumSource` is writable on a world document, and survives.
+- A module pack unlocks, takes a write and re-locks from the client, keeping the folder its manifest gave it.
+- `importFromJSON` fills Moulinette's placeholder through an `update` carrying `name`, which is what adoption claims on.
+- The whole reader path: a `graftPreBuild` transform in the `sources` phase materialises into an empty pack, and `readopt` refills one that was wiped.
+
+`materialise` in `packs.mjs` has no unit test, being bound to Foundry through `hasDocument` and `store`; it is exercised by every path that fetches into the pack.
 
 ## Style
 
