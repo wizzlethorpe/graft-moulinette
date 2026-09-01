@@ -38,3 +38,16 @@ test("an entry whose references all materialised, or that has none, is untouched
   assert.deepEqual(outcome({ id: "e1", source: MINE }, failed), { keep: true, warnings: [] });
   assert.deepEqual(outcome({ id: "e2", source: THEIRS }, failed), { keep: true, warnings: [] });
 });
+
+test("a source inside the patch counts too, at any depth", () => {
+  // An Adventure package carries its scenes as embedded entries, so this is
+  // the common case for a vault, not a corner.
+  const entry = { id: "adv", type: "Adventure", patch: { scenes: [{ _id: "s1", source: MINE, patch: {} }], actors: [{ _id: "a1", source: THEIRS }] } };
+  assert.deepEqual(referencesIn(entry).map((r) => r.id), ["CwVVyANWmNpt3Hfg"]);
+});
+
+test("an embedded source that failed sinks the entry, since graft would refuse it anyway", () => {
+  const entry = { id: "adv", source: THEIRS, patch: { scenes: [{ _id: "s1", source: MINE, patch: {} }] } };
+  const failed = new Map([["CwVVyANWmNpt3Hfg", "not in your Moulinette index"]]);
+  assert.deepEqual(outcome(entry, failed), { keep: false, reason: "not in your Moulinette index" });
+});

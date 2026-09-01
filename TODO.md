@@ -20,6 +20,3 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
   the pack's `.json` rows are few, so the one whose dependencies name the
   scene's background is very likely its source. Inference, so it should say
   what it guessed and let the author confirm.
-- Embedded sources. `referencesIn` reads an entry's top-level `source` only; a
-  `{ _id, source, patch }` inside a patch naming one of these packs is not
-  materialised, and graft's "embedded source did not resolve" fails the entry.

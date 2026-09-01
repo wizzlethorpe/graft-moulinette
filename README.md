@@ -48,7 +48,7 @@ Updating this module replaces its packs, as any module update does. Every adopte
 
 ## Building
 
-When a graft names one of this module's packs, the build materialises the document first: the reader's own asset index is searched for the one whose id matches, and Moulinette fetches it into the pack, its map, tiles and ambience along with it. Then graft resolves the source as usual. An asset the reader's account does not include is reported in the build's **Not built by Moulinette** section, and every other entry still builds.
+When a graft names one of this module's packs, at its top level or inside its patch the way an Adventure carries its scenes, the build materialises the document first: the reader's own asset index is searched for the one whose id matches, and Moulinette fetches it into the pack, its map, tiles and ambience along with it. Then graft resolves the source as usual. An asset the reader's account does not include is reported in the build's **Not built by Moulinette** section, and every other entry still builds.
 
 After every build, the documents graft made are scanned for `moulinette-v2/cloud/...` paths, and any file not on disk is fetched through Moulinette to exactly that path. A path that cannot be matched to an asset, or that Moulinette now files elsewhere, is listed in the console.
 

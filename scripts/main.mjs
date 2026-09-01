@@ -21,7 +21,7 @@ Hooks.once("ready", () => {
 });
 
 Hooks.on("graftPreBuild", (_moduleId, register) => {
-  register({ id: MODULE_ID, label: "Moulinette", transform });
+  register({ id: MODULE_ID, label: "Moulinette", phase: "sources", transform });
 });
 
 Hooks.on("graftBuilt", (_moduleId, { built }) => {
