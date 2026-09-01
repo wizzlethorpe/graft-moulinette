@@ -10,6 +10,11 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
   scenes in quick succession could claim each other's download, and a
   Moulinette action that downloads a document without importing it leaves a
   record the next same-named document claims.
+- Adoption is forward-only, and silent about it. A document imported before
+  this module was enabled records nothing, so Copy graft carries it whole with
+  no warning, which is the one failure here that can ship somebody else's
+  content. An `api.adopt(document, { pack, file })` would close it, at the cost
+  of the author typing the pair they could have written into an alias instead.
 - Moulinette's asset type numbers are read from its bundle and pinned in
   `index.mjs`. A renumbering makes every download claim by name alone, which
   still works and is not reported.

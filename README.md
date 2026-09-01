@@ -41,7 +41,11 @@ patch:
   walls: [...]
 ```
 
-The match is made by name: the last document Moulinette downloaded is claimed by the first world document created or filled with that name. Content imported before this module was enabled has no pack copy; make one from the console with the pack number from the marketplace URL and the asset's in-pack path:
+The match is made by name and type: the last document Moulinette downloaded is claimed by the first world document created or filled with that name.
+
+**Only what arrives while this module is enabled is adopted.** A document imported before then records nothing about where it came from, so **Copy graft** on it takes graft's no-source path and carries the whole document, walls and lights included, without saying so. Write the source by hand, which is what the alias is for, or import it again through Moulinette and copy that.
+
+A creator who republishes a pack leaves your copy stale. `api.import` fetches one afresh and replaces what is in the pack, taking the same pack number and filepath the marketplace page shows. It does not touch documents already in your world.
 
 ```js
 await game.modules.get("graft-moulinette").api.import({ type: "Scene", pack: 10698, file: "json/scene/mad-lair.json" })
