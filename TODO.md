@@ -13,8 +13,10 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 - Adoption is forward-only, and silent about it. A document imported before
   this module was enabled records nothing, so Copy graft carries it whole with
   no warning, which is the one failure here that can ship somebody else's
-  content. An `api.adopt(document, { pack, file })` would close it, at the cost
-  of the author typing the pair they could have written into an alias instead.
+  content. The README says to enable this first for that reason. Recovering it
+  after the fact means inference, not a lookup: Moulinette writes a document's
+  dependencies to disk but never the document, so nothing local says which
+  asset an import came from.
 - Moulinette's asset type numbers are read from its bundle and pinned in
   `index.mjs`. A renumbering makes every download claim by name alone, which
   still works and is not reported.
@@ -25,7 +27,10 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 
 ## Wanted
 
-- A way to adopt an existing world scene. The folder map gives its pack, and
-  the pack's `.json` rows are few, so the one whose dependencies name the
-  scene's background is very likely its source. Inference, so it should say
-  what it guessed and let the author confirm.
+- A way to adopt existing world content. Any local path in the document gives
+  its pack exactly, through the same folder map the file fetch uses; the
+  document's own filepath does not follow, and has to be inferred by
+  downloading the pack's `.json` rows and matching their dependencies against
+  the paths the document uses. Worth it for a batch of scenes, where the match
+  is strong. A Journal that embeds no Moulinette image, or a Macro, offers
+  nothing to infer from at all.

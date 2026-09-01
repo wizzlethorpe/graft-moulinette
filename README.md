@@ -11,6 +11,9 @@ Makes [Moulinette](https://www.moulinette.cloud/) content graftable. Import a sc
 https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json
 ```
 
+> [!IMPORTANT]
+> **Enable this before you import.** A document becomes a graft source at the moment Moulinette hands it over, so anything already in your world was never recorded and **Copy graft** on it will carry the whole document, walls and lights included, without saying so. Nothing on disk can recover what it came from: Moulinette writes a document's images and audio but never the document itself. For content you imported earlier, write its source by hand or import it again.
+
 ## What a source looks like
 
 ```
@@ -43,7 +46,7 @@ patch:
 
 The match is made by name and type: the last document Moulinette downloaded is claimed by the first world document created or filled with that name.
 
-**Only what arrives while this module is enabled is adopted.** A document imported before then records nothing about where it came from, so **Copy graft** on it takes graft's no-source path and carries the whole document, walls and lights included, without saying so. Write the source by hand, which is what the alias is for, or import it again through Moulinette and copy that.
+**Only what arrives while this module is enabled is adopted**, which is why it wants enabling before you start importing. A document imported before then records nothing about where it came from, so **Copy graft** on it takes graft's no-source path and carries the whole document. Write the source by hand, which is what the alias is for, or import it again through Moulinette and copy that.
 
 A creator who republishes a pack leaves your copy stale. `api.import` fetches one afresh and replaces what is in the pack, taking the same pack number and filepath the marketplace page shows. It does not touch documents already in your world.
 
