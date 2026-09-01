@@ -1,0 +1,56 @@
+{
+  "id": "graft-moulinette",
+  "title": "Graft: Moulinette",
+  "description": "Makes Moulinette content graftable. Import a scene through Moulinette as usual and it becomes a compendium source a graft can name; a reader's build fetches it, and the files it uses, from their own Moulinette subscription.",
+  "url": "https://github.com/wizzlethorpe/graft-moulinette",
+  "license": "LICENSE",
+  "readme": "README.md",
+  "bugs": "https://github.com/wizzlethorpe/graft-moulinette/issues",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Wizzlethorpe Labs",
+      "url": "https://wizzlethorpe.com"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "packs": [
+    { "name": "scenes", "label": "Moulinette Scenes", "path": "packs/scenes", "type": "Scene" },
+    { "name": "playlists", "label": "Moulinette Playlists", "path": "packs/playlists", "type": "Playlist" },
+    { "name": "journal", "label": "Moulinette Journal", "path": "packs/journal", "type": "JournalEntry" },
+    { "name": "macros", "label": "Moulinette Macros", "path": "packs/macros", "type": "Macro" }
+  ],
+  "packFolders": [
+    { "name": "Moulinette", "sorting": "a", "packs": ["scenes", "playlists", "journal", "macros"] }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "graft",
+        "type": "module",
+        "manifest": "https://github.com/wizzlethorpe/graft/releases/latest/download/module.json",
+        "compatibility": { "minimum": "0.7.0" }
+      },
+      {
+        "id": "moulinette",
+        "type": "module",
+        "compatibility": { "minimum": "2.3.0" }
+      }
+    ]
+  },
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "manifest": "https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json",
+  "download": "https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/graft-moulinette.zip"
+}
