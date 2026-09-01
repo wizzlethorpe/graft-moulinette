@@ -10,14 +10,16 @@ export function hasDocument(type, id) {
 }
 
 /**
- * Put a Moulinette document in the pack for its type, under its id. Migrated
- * by Foundry on the way in; the publisher's `_stats` go, and Foundry writes fresh ones.
+ * Put a Moulinette document in the pack for its type, under its id.
+ *
+ * `_stats` stays for `fromImport`, which migrates by the version recorded
+ * there; only the publisher's own source claim goes.
  */
 export async function store(type, json, id) {
-  const data = { ...json };
+  const data = { ...json, _stats: { ...json._stats } };
   delete data._id;
   delete data.folder;
-  delete data._stats;
+  delete data._stats.compendiumSource;
   const prepared = (await getDocumentClass(type).fromImport(data)).toObject();
   prepared._id = id;
 
