@@ -78,6 +78,10 @@ After every build, the documents graft made are scanned for `moulinette-v2/cloud
 - **ScenePacker packs and private cloud content** are not in the asset index, so they cannot be named.
 - **Paths inside markup**, such as an `<img>` in a journal page, are left alone. Only a value that is a path by itself is fetched.
 
+## Support
+
+Graft: Moulinette is a free and open-source Wizzlethorpe Labs product. If you find it useful, please consider [supporting us on Patreon](https://www.patreon.com/wizzlethorpe). Check out [wizzlethorpe.com](https://wizzlethorpe.com) for more free tools and content!
+
 ## Layout
 
 ```
