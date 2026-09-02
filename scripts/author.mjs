@@ -89,6 +89,6 @@ export async function importAsset({ type, pack, file }) {
   const row = rowFor(index, pack, file);
   if (!row) throw new Error(`no ${file} in Moulinette pack ${pack}: your account may not include it, or it moved`);
   const id = await documentId(row.pack_id, row.url);
-  await store(type, await downloadDocument(row, index), id, { pack: row.pack_id, file: row.url });
+  await store(type, await downloadDocument(row, index), id, { pack: String(row.pack_id), file: row.url });
   return referenceFor(type, id);
 }

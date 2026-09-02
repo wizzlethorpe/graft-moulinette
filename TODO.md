@@ -4,6 +4,11 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 
 ## Known limits
 
+- Copy graft renames only an entry's own source. A source nested in a patch,
+  the way an Adventure carries its scenes, comes back as the compendium UUID:
+  naming it would mean reading the flag off each embedded document's pack copy,
+  and the entry's own document cannot answer for them.
+
 - The author-side match is by name and type. Moulinette creates a placeholder
   and fills it by `importFromJSON`, so nothing ties the update to the download
   but the document's name and the order of events. Two imports of same-named

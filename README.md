@@ -28,7 +28,7 @@ Nobody can work that digest out by hand, so a source may also be written the way
 @moulinette/Scene/11948/json/scene/02-adamantine-mining.json
 ```
 
-The pack number and filepath are the two things that page shows you; the type says which pack it lands in, since this module has no way to ask Moulinette at authoring time. Both spellings name the same document, and the build turns the alias into the UUID before graft resolves anything, so nothing downstream ever sees one. **Copy graft** writes the alias, so what you paste reads like what you would have written.
+The pack number and filepath are the two things that page shows you; the type says which pack it lands in, since this module has no way to ask Moulinette at authoring time. Both spellings name the same document, and the build turns the alias into the UUID before graft resolves it. **Copy graft** writes the alias back, so what you paste reads like what you would have written; a source nested inside a patch, the way an Adventure carries its scenes, comes back as the UUID instead.
 
 ## Authoring
 
@@ -83,7 +83,7 @@ scripts/paths.mjs    recognising a Moulinette path and matching it to an asset. 
 scripts/index.mjs    everything that touches Moulinette: its index, its downloads, the wrap that watches them.
 scripts/packs.mjs    writing into this module's packs.
 scripts/author.mjs   adopting what Moulinette imports.
-scripts/reader.mjs   the graftPreBuild transform and the post-build file fetch.
+scripts/reader.mjs   aliases, the graftPreBuild transform, Copy graft's rename, the post-build file fetch.
 scripts/main.mjs     hooks only.
 ```
 

@@ -15,21 +15,22 @@ function topReferences(entry) {
 }
 
 /**
- * Those named by `{ _id, source, patch }` members of a keyed array: an
- * Adventure's scenes, an actor's items. Array members only, since that is
- * what graft expands.
+ * Every `{ _id, source, patch }` member of a keyed array, at any depth: an
+ * Adventure's scenes, an actor's items. Array members only, as graft expands.
  */
-function embeddedReferences(value, into = []) {
+function* sourcedMembers(value) {
   if (Array.isArray(value)) {
     for (const v of value) {
-      const ref = typeof v?._id === "string" ? parseReference(v.source) : null;
-      if (ref) into.push(ref);
-      embeddedReferences(v, into);
+      if (v && typeof v === "object" && typeof v._id === "string" && typeof v.source === "string") yield v;
+      yield* sourcedMembers(v);
     }
   } else if (value && typeof value === "object") {
-    for (const v of Object.values(value)) embeddedReferences(v, into);
+    for (const v of Object.values(value)) yield* sourcedMembers(v);
   }
-  return into;
+}
+
+function embeddedReferences(patch) {
+  return [...sourcedMembers(patch)].map((e) => parseReference(e.source)).filter(Boolean);
 }
 
 export function referencesIn(entry) {
@@ -55,55 +56,48 @@ export function outcome(entry, failed) {
   return { keep: true, warnings: problems };
 }
 
-/** Every sourced entry in a patch, at any depth. Array members only, as graft expands. */
-function sourced(value, visit) {
-  if (Array.isArray(value)) {
-    for (const v of value) {
-      if (v && typeof v === "object" && typeof v._id === "string") visit(v);
-      sourced(v, visit);
-    }
-  } else if (value && typeof value === "object") {
-    for (const v of Object.values(value)) sourced(v, visit);
+/** The aliases one entry names, at its top level or inside its patch. */
+function aliasesIn(entry) {
+  const found = [];
+  for (const s of Array.isArray(entry?.source) ? entry.source : [entry?.source]) {
+    if (parseAlias(s)) found.push(s);
   }
+  for (const member of sourcedMembers(entry?.patch)) {
+    if (parseAlias(member.source)) found.push(member.source);
+  }
+  return found;
 }
 
-/** Alias to the compendium UUID it names, for every alias the entries hold. */
-async function aliasMap(entries) {
-  const aliases = new Set();
-  const add = (v) => { if (parseAlias(v)) aliases.add(v); };
-  for (const entry of entries) {
-    for (const s of Array.isArray(entry?.source) ? entry.source : [entry?.source]) add(s);
-    sourced(entry?.patch, (e) => add(e.source));
-  }
-  const map = new Map();
-  for (const alias of aliases) {
-    const { type, pack, file } = parseAlias(alias);
-    map.set(alias, referenceFor(type, await documentId(pack, file)));
-  }
-  return map;
-}
-
-/** A copy of the entry with every alias replaced, so nothing downstream sees one. */
+/** A copy of the entry with every alias replaced by the reference it names. */
 function expand(entry, map) {
   const swap = (v) => map.get(v) ?? v;
-  const patch = structuredClone(entry.patch ?? null);
-  sourced(patch, (e) => { e.source = swap(e.source); });
-  return {
-    ...entry,
-    ...(entry.source === undefined ? {} : {
-      source: Array.isArray(entry.source) ? entry.source.map(swap) : swap(entry.source),
-    }),
-    ...(patch === null ? {} : { patch }),
-  };
+  const out = { ...entry };
+  if (out.source !== undefined) {
+    out.source = Array.isArray(out.source) ? out.source.map(swap) : swap(out.source);
+  }
+  if (out.patch) {
+    out.patch = structuredClone(out.patch);
+    for (const member of sourcedMembers(out.patch)) member.source = swap(member.source);
+  }
+  return out;
 }
 
 /**
- * Every alias replaced by the reference it names, so nothing downstream, graft
- * included, ever sees one. Pure, and the only async part is the digest.
+ * Every alias replaced by the reference it names. Only entries holding one are
+ * rebuilt, so an unrelated patch is never cloned.
  */
 export async function expandAliases(entries) {
-  const map = await aliasMap(entries);
-  return map.size === 0 ? entries : entries.map((e) => expand(e, map));
+  const map = new Map();
+  const mine = new Set();
+  for (const entry of entries) {
+    for (const alias of aliasesIn(entry)) {
+      mine.add(entry);
+      if (map.has(alias)) continue;
+      const { type, pack, file } = parseAlias(alias);
+      map.set(alias, referenceFor(type, await documentId(pack, file)));
+    }
+  }
+  return mine.size === 0 ? entries : entries.map((e) => (mine.has(e) ? expand(e, map) : e));
 }
 
 /**

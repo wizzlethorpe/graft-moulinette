@@ -30,7 +30,7 @@ export function referenceFor(type, id) {
 
 // How a marketplace page names the same asset, and how an author writes one by
 // hand: the pack number and in-pack path are exactly what the page shows.
-export const ALIAS_PREFIX = "@moulinette/";
+const ALIAS_PREFIX = "@moulinette/";
 
 export function aliasFor(type, pack, file) {
   return `${ALIAS_PREFIX}${type}/${pack}/${file}`;

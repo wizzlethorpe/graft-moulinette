@@ -81,9 +81,27 @@ test("an alias becomes the reference it names, wherever it sits", async () => {
   assert.deepEqual(entries[3], { id: "d", patch: { name: "untouched" } });
 });
 
-test("entries with no alias are returned as they came", async () => {
-  const before = [{ id: "a", source: THEIRS, patch: { name: "x" } }];
-  assert.equal(await expandAliases(before), before);
+test("an entry with no alias is not rebuilt, so its patch is never cloned", async () => {
+  const before = [{ id: "a", source: THEIRS, patch: { name: "x" } }, { id: "b", source: ALIAS, patch: {} }];
+  const after = await expandAliases(before);
+  assert.equal(after[0], before[0], "the same object, not a copy");
+  assert.notEqual(after[1], before[1]);
+});
+
+test("a member that names no source is left exactly as it was", async () => {
+  // `source: undefined` is invisible to JSON.stringify and visible to
+  // everything else: graft hashes it, and Foundry writes it.
+  const [entry] = await expandAliases([
+    { id: "a", source: ALIAS, patch: { tokens: [{ _id: "t1", name: "Guard" }] } },
+  ]);
+  assert.deepStrictEqual(Object.keys(entry.patch.tokens[0]), ["_id", "name"]);
+});
+
+test("an alias nested below one level is still expanded", async () => {
+  const [entry] = await expandAliases([
+    { id: "a", type: "Adventure", patch: { scenes: [{ _id: "s1", source: THEIRS, patch: { tokens: [{ _id: "t1", source: ALIAS }] } }] } },
+  ]);
+  assert.equal(entry.patch.scenes[0].patch.tokens[0].source, MINE);
 });
 
 test("Copy graft names a Moulinette source the way its page does", () => {
@@ -98,6 +116,9 @@ test("Copy graft names a Moulinette source the way its page does", () => {
 
 test("a document this module did not adopt keeps the source graft gave it", () => {
   assert.equal(rewrite({ id: "a", source: THEIRS }, { document: { flags: {} } }).source, THEIRS);
+  // Adopted, but graft named a pack belonging to somebody else.
+  const adopted = { documentName: "Scene", flags: { "graft-moulinette": { pack: "10698", file: "json/scene/mad-lair.json" } } };
+  assert.equal(rewrite({ id: "a", source: THEIRS }, { document: adopted }).source, THEIRS);
   assert.equal(rewrite({ id: "a", patch: {} }, { document: { documentName: "Scene", flags: { "graft-moulinette": { pack: "1", file: "a.json" } } } }).source,
     undefined, "content with no source at all");
 });

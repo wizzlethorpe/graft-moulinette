@@ -24,7 +24,7 @@ export async function store(type, json, id, { pack, file }) {
   prepared._id = id;
   // On the pack copy as well as the world one, so it cancels in a Copy graft
   // diff rather than travelling in every patch.
-  foundry.utils.setProperty(prepared, `flags.${MODULE_ID}`, { pack: String(pack), file });
+  foundry.utils.setProperty(prepared, `flags.${MODULE_ID}`, { pack, file });
 
   const collection = `${MODULE_ID}.${PACKS[type]}`;
   const into = game.packs.get(collection);
@@ -66,7 +66,7 @@ export async function materialise(refs, index, step = () => {}) {
       continue;
     }
     try {
-      await store(ref.type, await downloadDocument(row, index), ref.id, { pack: row.pack_id, file: row.url });
+      await store(ref.type, await downloadDocument(row, index), ref.id, { pack: String(row.pack_id), file: row.url });
     } catch (err) {
       failed.set(ref.id, err.message);
     }
