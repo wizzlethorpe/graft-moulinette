@@ -25,7 +25,7 @@ An ordinary compendium UUID. The pack is one this module declares, one per docum
 Nobody can work that digest out by hand, so a source may also be written the way a marketplace page reads:
 
 ```
-@moulinette/Scene/11948/json/scene/02-adamantine-mining.json
+@moulinette/Scene/10698/json/scene/mad-lair.json
 ```
 
 The pack number and filepath are the two things that page shows you; the type says which pack it lands in, since this module has no way to ask Moulinette at authoring time. Both spellings name the same document, and the build turns the alias into the UUID before graft resolves it. **Copy graft** writes the alias back, so what you paste reads like what you would have written; a source nested inside a patch, the way an Adventure carries its scenes, comes back as the UUID instead.
@@ -34,14 +34,17 @@ The pack number and filepath are the two things that page shows you; the type sa
 
 Import through Moulinette as you always have. When the document lands in your world, this module writes a pristine copy into its own pack under that id and records the pack copy as the world document's source. Edit the world copy and press **Copy graft**: graft diffs it against the pack copy and produces an entry naming Moulinette rather than carrying the scene.
 
-```yaml
-id: mySewerLair000001
-type: Scene
-pack: my-scenes
-source: "@moulinette/Scene/10698/json/scene/mad-lair.json"
-patch:
-  name: The Sewer Lair
-  walls: [...]
+```json
+{
+  "id": "mySewerLair00001",
+  "type": "Scene",
+  "pack": "my-scenes",
+  "source": "@moulinette/Scene/10698/json/scene/mad-lair.json",
+  "patch": {
+    "name": "The Sewer Lair",
+    "walls": [ … ]
+  }
+}
 ```
 
 The match is made by name and type: the last document Moulinette downloaded is claimed by the first world document created or filled with that name.
