@@ -2,6 +2,7 @@
 
 [![tests](https://github.com/wizzlethorpe/graft-moulinette/actions/workflows/test.yml/badge.svg)](https://github.com/wizzlethorpe/graft-moulinette/actions/workflows/test.yml)
 [![license](https://img.shields.io/github/license/wizzlethorpe/graft-moulinette)](LICENSE)
+[![release](https://img.shields.io/github/v/release/wizzlethorpe/graft-moulinette?display_name=tag&sort=semver)](https://github.com/wizzlethorpe/graft-moulinette/releases/latest)
 
 Makes [Moulinette](https://www.moulinette.cloud/) content usable as [graft](https://github.com/wizzlethorpe/graft) sources. When you import a scene through Moulinette's browser, this module records where it came from, so a graft can name it as a source. When a reader builds that graft, the scene and the files it uses are fetched from the reader's own Moulinette subscription. The graft itself never contains the publisher's content.
 
