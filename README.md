@@ -6,7 +6,7 @@
 
 Makes [Moulinette](https://www.moulinette.cloud/) content usable as [graft](https://github.com/wizzlethorpe/graft) sources. When you import a scene through Moulinette's browser, this module records where it came from, so a graft can name it as a source. When a reader builds that graft, the build fetches the scene and the files it uses from the reader's own Moulinette subscription. The graft itself never contains the publisher's content.
 
-**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.7.0 or later.
+**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.9.1 or later.
 
 ```
 https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json

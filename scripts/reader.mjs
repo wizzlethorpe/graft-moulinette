@@ -164,7 +164,12 @@ function presence() {
 /** After a build: fetch every Moulinette file the built documents name and the reader lacks. */
 export async function fetchFiles(built) {
   const paths = new Set();
-  for (const uuid of built) localPaths((await fromUuid(uuid)).toObject(), paths);
+  // Through graft: an entry assembled into an Adventure has a uuid `fromUuid` rejects.
+  const { resolve } = game.modules.get("graft").api;
+  for (const uuid of built) {
+    const data = await resolve(uuid);
+    if (data) localPaths(data, paths);
+  }
   if (paths.size === 0) return;
 
   const index = await loadIndex();

@@ -70,7 +70,7 @@
         "type": "module",
         "manifest": "https://github.com/wizzlethorpe/graft/releases/latest/download/module.json",
         "compatibility": {
-          "minimum": "0.7.0"
+          "minimum": "0.9.1"
         }
       },
       {
