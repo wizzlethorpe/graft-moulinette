@@ -6,7 +6,7 @@
   "license": "LICENSE",
   "readme": "README.md",
   "bugs": "https://github.com/wizzlethorpe/graft-moulinette/issues",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -89,6 +89,6 @@
       "path": "lang/en.json"
     }
   ],
-  "manifest": "https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json",
-  "download": "https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/graft-moulinette.zip"
+  "manifest": "https://github.com/wizzlethorpe/graft-moulinette/releases/download/v0.2.0/module.json",
+  "download": "https://github.com/wizzlethorpe/graft-moulinette/releases/download/v0.2.0/graft-moulinette.zip"
 }
