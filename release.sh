@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Cut a release: bump, test, tag, publish to GitHub and the Foundry registry.
 #
+#   ./release.sh                     # pick a patch/minor/major bump
 #   ./release.sh 1.0.0
 #   ./release.sh 1.0.0 --dry-run     # build and report, publish nothing
 #
@@ -21,12 +22,29 @@ for arg in "$@"; do
     *) [ -n "$NEW_VERSION" ] && { echo "Version given twice" >&2; exit 1; }; NEW_VERSION="$arg" ;;
   esac
 done
-[ -n "$NEW_VERSION" ] || { echo "Usage: ./release.sh <X.Y.Z> [--dry-run]" >&2; exit 1; }
-[[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version must be X.Y.Z" >&2; exit 1; }
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 for cmd in jq gh zip node; do command -v "$cmd" >/dev/null || { echo "Error: $cmd required" >&2; exit 1; }; done
 [ -z "$(git status --porcelain)" ] || { echo "Error: working tree is dirty" >&2; exit 1; }
+
+if [ -z "$NEW_VERSION" ]; then
+  CURRENT=$(jq -r '.version' module.json)
+  IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT%%-*}"
+  echo "Current version: $CURRENT"
+  echo "  1) patch  $MAJOR.$MINOR.$((PATCH + 1))"
+  echo "  2) minor  $MAJOR.$((MINOR + 1)).0"
+  echo "  3) major  $((MAJOR + 1)).0.0"
+  echo "  4) custom"
+  read -rp "Choice [1-4]: " CHOICE
+  case "$CHOICE" in
+    1) NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))" ;;
+    2) NEW_VERSION="$MAJOR.$((MINOR + 1)).0" ;;
+    3) NEW_VERSION="$((MAJOR + 1)).0.0" ;;
+    4) read -rp "Version: " NEW_VERSION ;;
+    *) echo "Aborted." >&2; exit 1 ;;
+  esac
+fi
+[[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version must be X.Y.Z" >&2; exit 1; }
 
 TAG="v$NEW_VERSION"
 git rev-parse "$TAG" >/dev/null 2>&1 && { echo "Error: $TAG already exists" >&2; exit 1; }
@@ -37,13 +55,10 @@ node --test 'test/*.test.mjs' >/dev/null || { echo "Error: tests failed" >&2; ex
 echo "==> Version $NEW_VERSION"
 jq --arg v "$NEW_VERSION" '.version = $v' module.json > module.json.tmp && mv module.json.tmp module.json
 
-# Versioned URLs in the *released* manifest. Foundry's registry caches manifest
-# responses, so a /releases/latest/ URL leaves stale versions lingering in the
-# in-app browser. A versioned URL is immutable, so every release is a fresh one.
-# The repo's module.json is put back to /latest/ at the end.
+# Pin the zip to its own tag, so a manifest and the bytes it names cannot
+# disagree. `manifest` stays on /latest/: an installed copy polls it for updates.
 jq --arg v "$NEW_VERSION" --arg repo "$GITHUB_REPO" \
-   '.download = "https://github.com/" + $repo + "/releases/download/v" + $v + "/" + "graft-moulinette.zip" |
-    .manifest = "https://github.com/" + $repo + "/releases/download/v" + $v + "/module.json"' \
+   '.download = "https://github.com/" + $repo + "/releases/download/v" + $v + "/graft-moulinette.zip"' \
    module.json > module.json.tmp && mv module.json.tmp module.json
 
 BUILD=$(mktemp -d)
@@ -80,6 +95,8 @@ if [ -z "$FOUNDRY_TOKEN" ]; then
   echo "==> No FOUNDRY_RELEASE_TOKEN in .env; skipping the package registry"
 else
   echo "==> Foundry package registry"
+  # A versioned manifest URL, never /latest/: the registry caches by URL, and
+  # reusing one left the in-app browser serving an already-superseded version.
   RESPONSE=$(curl -sS -X POST "https://foundryvtt.com/_api/packages/release_version/" \
     -H "Content-Type: application/json" \
     -H "Authorization: $FOUNDRY_TOKEN" \
@@ -98,8 +115,7 @@ fi
 
 # Back to /latest/ in the repo, so what is committed is never a stale pin.
 jq --arg repo "$GITHUB_REPO" \
-   '.download = "https://github.com/" + $repo + "/releases/latest/download/graft-moulinette.zip" |
-    .manifest = "https://github.com/" + $repo + "/releases/latest/download/module.json"' \
+   '.download = "https://github.com/" + $repo + "/releases/latest/download/graft-moulinette.zip"' \
    module.json > module.json.tmp && mv module.json.tmp module.json
 git add module.json && git commit -qm "Back to latest/ URLs after $NEW_VERSION"
 git push -q origin main

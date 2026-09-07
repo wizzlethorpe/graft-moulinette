@@ -3,14 +3,11 @@
 [![tests](https://github.com/wizzlethorpe/graft-moulinette/actions/workflows/test.yml/badge.svg)](https://github.com/wizzlethorpe/graft-moulinette/actions/workflows/test.yml)
 [![license](https://img.shields.io/github/license/wizzlethorpe/graft-moulinette)](LICENSE)
 [![release](https://img.shields.io/github/v/release/wizzlethorpe/graft-moulinette?display_name=tag&sort=semver)](https://github.com/wizzlethorpe/graft-moulinette/releases/latest)
+[![foundry](https://img.shields.io/endpoint?url=https://foundryshields.com/version?url=https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json&style=flat)](https://foundryvtt.com/packages/graft-moulinette)
 
 Makes [Moulinette](https://www.moulinette.cloud/) content usable as [graft](https://github.com/wizzlethorpe/graft) sources. When you import a scene through Moulinette's browser, this module records where it came from, so a graft can name it as a source. When a reader builds that graft, the build fetches the scene and the files it uses from the reader's own Moulinette subscription. The graft itself never contains the publisher's content.
 
-**Install:** paste this into Foundry's *Install Module* dialog. Needs Moulinette and graft 0.9.1 or later.
-
-```
-https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json
-```
+To install, simply search for **Graft** in Foundry's *Install Module* dialog. Needs Moulinette and graft 0.9.1 or later.
 
 > [!IMPORTANT]
 > **Enable this module before you import.** It records where a document came from at the moment Moulinette hands it over. Documents imported before that have no recorded source, so **Copy graft** on them copies the whole document, walls and lights included, without warning you. The source cannot be recovered from disk afterwards, because Moulinette saves a document's images and audio but never the document itself. For content you imported earlier, write the source by hand or import it again.
