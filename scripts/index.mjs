@@ -3,13 +3,19 @@
 // are checked for rather than assumed.
 
 import { MODULE_ID, documentId } from "./refs.mjs";
-import { lookup, rowKey } from "./paths.mjs";
+import { lookup, rowKey, DEFAULT_ROOT } from "./paths.mjs";
 
 /** The collection that fetches `/all-assets`: everything the account can reach. */
 const CACHED_COLLECTION = "mou-cloud-cached";
 
 /** Moulinette's asset type numbers for the documents this module keeps. */
 const TYPES = { 1: "Scene", 8: "JournalEntry", 9: "Playlist", 10: "Macro" };
+
+/** Where this reader's Moulinette files cloud downloads. `MOU_DEF_FOLDER` is documented as overridable. */
+export function cloudRoot() {
+  const folder = game.modules.get("moulinette")?.configs?.MOU_DEF_FOLDER;
+  return folder ? `${folder}/cloud/` : DEFAULT_ROOT;
+}
 
 /** The cloud collection, or null when it lacks what this module calls on it. */
 function cachedCollection(mod = game.modules.get("moulinette")) {

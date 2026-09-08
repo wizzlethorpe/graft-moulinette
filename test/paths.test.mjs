@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { localPath, localPaths, lookup, assetFor } from "../scripts/paths.mjs";
+import { localPath, localPaths, lookup, assetFor, DEFAULT_ROOT } from "../scripts/paths.mjs";
 
 /** Index rows, as Moulinette's `cache.allAssets` holds them. */
 const LAIR = {
@@ -64,6 +64,15 @@ test("a local path finds the row it came from", () => {
   assert.equal(assetFor(LOCAL, found), LAIR);
   assert.equal(assetFor("moulinette-v2/cloud/themadcartographer/mad-lairs-2.3/audio/drip.ogg", found), DRIP);
   assert.equal(assetFor("moulinette-v2/cloud/michaelghelfi/Winds_Vol._1/Ambiences/wind.ogg", found), WIND);
+});
+
+test("a reader who changed Moulinette's folder is matched under that folder, and not under the default", () => {
+  const root = "moufolder/cloud/";
+  const moved = LOCAL.replace(DEFAULT_ROOT, root);
+  assert.equal(localPath(moved, root), moved);
+  assert.equal(localPath(moved), null, "the default root does not reach into a renamed folder");
+  assert.deepEqual([...localPaths({ background: { src: moved } }, new Set(), root)], [moved]);
+  assert.equal(assetFor(moved, lookup([LAIR]), root), LAIR);
 });
 
 test("a path under a pack the account lacks, or a file it does not hold, matches nothing", () => {

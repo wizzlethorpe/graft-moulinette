@@ -4,7 +4,7 @@
 
 import { MODULE_ID, documentId, aliasFor, referenceFor, parseReference, parseAlias } from "./refs.mjs";
 import { localPaths, assetFor } from "./paths.mjs";
-import { loadIndex, downloadFile, lookupFor } from "./index.mjs";
+import { loadIndex, downloadFile, lookupFor, cloudRoot } from "./index.mjs";
 import { materialise } from "./packs.mjs";
 
 /** The references to this module's packs that an entry's own source names. */
@@ -163,12 +163,13 @@ function presence() {
 
 /** After a build: fetch every Moulinette file the built documents name and the reader lacks. */
 export async function fetchFiles(built) {
+  const root = cloudRoot();
   const paths = new Set();
   // Through graft: an entry assembled into an Adventure has a uuid `fromUuid` rejects.
   const { resolve } = game.modules.get("graft").api;
   for (const uuid of built) {
     const data = await resolve(uuid);
-    if (data) localPaths(data, paths);
+    if (data) localPaths(data, paths, root);
   }
   if (paths.size === 0) return;
 
@@ -179,7 +180,7 @@ export async function fetchFiles(built) {
   const problems = [];
   for (const path of paths) {
     if (await present(path)) continue;
-    const row = assetFor(path, found);
+    const row = assetFor(path, found, root);
     if (!row) { problems.push(`${path}: not in your Moulinette index`); continue; }
     try {
       const landed = await downloadFile(row, index);
