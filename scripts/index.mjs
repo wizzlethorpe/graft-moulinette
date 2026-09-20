@@ -2,14 +2,16 @@
 // on its download that tells the author's side what was fetched. Internals
 // are checked for rather than assumed.
 
-import { MODULE_ID, documentId } from "./refs.mjs";
 import { lookup, rowKey, DEFAULT_ROOT } from "./paths.mjs";
+import { isDocument } from "./files.mjs";
+
+export const NOT_INDEXED = "not in your Moulinette index: your account may not include it, or it moved";
 
 /** The collection that fetches `/all-assets`: everything the account can reach. */
 const CACHED_COLLECTION = "mou-cloud-cached";
 
 /** Moulinette's asset type numbers for the documents this module keeps. */
-const TYPES = { 1: "Scene", 8: "JournalEntry", 9: "Playlist", 10: "Macro" };
+export const TYPES = { 1: "Scene", 8: "JournalEntry", 9: "Playlist", 10: "Macro" };
 
 /** Where this reader's Moulinette files cloud downloads. `MOU_DEF_FOLDER` is documented as overridable. */
 export function cloudRoot() {
@@ -20,7 +22,7 @@ export function cloudRoot() {
 /** The cloud collection, or null when it lacks what this module calls on it. */
 function cachedCollection(mod = game.modules.get("moulinette")) {
   const c = mod?.collections?.find((c) => c.getId?.() === CACHED_COLLECTION);
-  return c?.initialize && c.selectAsset && c.downloadAsset ? c : null;
+  return c?.initialize && c.downloadAsset ? c : null;
 }
 
 /** `{ mod, collection, assets }`, or throws with the reason. */
@@ -52,11 +54,11 @@ export async function loadIndex() {
  * `downloadAsset` returned, with the document text in `message`.
  */
 export function downloaded(descriptor, result) {
-  if (!descriptor.filepath.endsWith(".json") || typeof result?.message !== "string") return null;
+  if (!isDocument(descriptor.filepath) || typeof result?.message !== "string") return null;
   try {
     return {
       pack: String(descriptor.pack_ref),
-      file: descriptor.filepath,
+      path: descriptor.filepath,
       type: TYPES[descriptor.type] ?? null,     // unknown numbers claim by name alone
       document: JSON.parse(result.message),
     };
@@ -65,7 +67,7 @@ export function downloaded(descriptor, result) {
   }
 }
 
-let original = null;
+const UNWRAPPED = Symbol("graft-moulinette: Moulinette's own downloadAsset");
 
 /** Wrap Moulinette's download so `onDocument` sees every document it fetches. */
 export function watchDownloads(onDocument) {
@@ -74,7 +76,8 @@ export function watchDownloads(onDocument) {
     ui.notifications.warn(game.i18n.localize("GRAFTMOU.NoCollection"));
     return;
   }
-  original = collection.downloadAsset.bind(collection);
+  const original = collection.downloadAsset.bind(collection);
+  collection[UNWRAPPED] = original;
   collection.downloadAsset = async (descriptor) => {
     const result = await original(descriptor);
     const record = downloaded(descriptor, result);
@@ -84,54 +87,40 @@ export function watchDownloads(onDocument) {
 }
 
 /** Moulinette's download as it was before the wrap, so this module's own fetches are not seen as imports. */
-function unwrappedDownload(collection) {
-  return original ?? collection.downloadAsset.bind(collection);
-}
+const unwrappedDownload = (collection) => collection[UNWRAPPED] ?? collection.downloadAsset.bind(collection);
+
+/** Moulinette's `/asset/<id>` response, which holds a download link signed for this account and good for an hour. */
+const descriptorFor = (row, index) => index.mod.cloudclient.apiGET(`/asset/${row.id}`, { session: index.mod.getSessionId() });
 
 /**
  * Document data for a `.json` row, its `#DEP#` placeholders already local.
  * Slow: a scene pulls its map, tiles and ambience with it.
  */
 export async function downloadDocument(row, index) {
-  const descriptor = await index.mod.cloudclient.apiGET(`/asset/${row.id}`, { session: index.mod.getSessionId() });
+  const descriptor = await descriptorFor(row, index);
   const dl = await unwrappedDownload(index.collection)(descriptor);
   if (!dl?.message) throw new Error(`Moulinette could not download ${row.pack_id}/${row.url}`);
   return JSON.parse(dl.message);
 }
 
-/** Where a media row's file lands, downloaded if it is not there yet. */
-export async function downloadFile(row, index) {
-  const path = await index.collection.selectAsset(row);
-  if (!path) throw new Error(`Moulinette could not download ${row.pack_id}/${row.url}`);
-  return path;
+/** A media row's bytes. Fetched directly, since Moulinette's own download writes to a folder of its choosing. */
+export async function fetchFile(row, index) {
+  const descriptor = await descriptorFor(row, index);
+  const res = await fetch(`${descriptor.base_url}/${descriptor.file_url}`);
+  if (!res.ok) throw new Error(`${res.status} downloading ${row.pack_id}/${row.url} from Moulinette`);
+  return res.blob();
 }
 
 // Keyed on the array Moulinette holds: it replaces that array when its
 // settings change, so this notices without being told.
-let cache = { assets: null, lookup: null, ids: null };
-
-function cacheFor(assets) {
-  if (cache.assets !== assets) cache = { assets, lookup: lookup(assets), ids: null };
-  return cache;
-}
+let cache = { assets: null, lookup: null };
 
 export function lookupFor(index) {
-  return cacheFor(index.assets).lookup;
+  if (cache.assets !== index.assets) cache = { assets: index.assets, lookup: lookup(index.assets) };
+  return cache.lookup;
 }
 
 /** The index row for a pack number and in-pack path, or undefined. */
-export function rowFor(index, pack, file) {
-  return lookupFor(index).rows.get(rowKey(pack, file));
-}
-
-/** Document id to index row, for every `.json` asset the account can reach. */
-export async function documentIds(index) {
-  const c = cacheFor(index.assets);
-  if (!c.ids) {
-    c.ids = new Map();
-    for (const a of c.assets) {
-      if (a.url.endsWith(".json")) c.ids.set(await documentId(a.pack_id, a.url), a);
-    }
-  }
-  return c.ids;
+export function rowFor(index, pack, path) {
+  return lookupFor(index).rows.get(rowKey(pack, path));
 }

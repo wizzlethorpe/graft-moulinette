@@ -12,29 +12,13 @@
 /** Moulinette's own default, for a reader who has not changed it. */
 export const DEFAULT_ROOT = "moulinette-v2/cloud/";
 
-const escapeRe = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-// The optional prefix is the base URL a reader storing on a bucket sees in
-// front of the same tree.
-const wholePath = (root) => new RegExp(`^(?:[a-z][a-z0-9+.-]*:\\/\\/[^\\s"']*\\/)?(${escapeRe(root)}[^?]+?)(?:\\?.*)?$`);
-
-/** The local path a string is, or null when it is not one, or only contains one. */
-export function localPath(value, root = DEFAULT_ROOT) {
-  if (typeof value !== "string" || !value.includes(root)) return null;
-  return wholePath(root).exec(value)?.[1] ?? null;
-}
-
-/** Every local path a document names as a whole string. */
-export function localPaths(value, into = new Set(), root = DEFAULT_ROOT) {
-  if (typeof value === "string") {
-    const path = localPath(value, root);
-    if (path) into.add(path);
-  } else if (Array.isArray(value)) {
-    for (const v of value) localPaths(v, into, root);
-  } else if (value && typeof value === "object") {
-    for (const v of Object.values(value)) localPaths(v, into, root);
-  }
-  return into;
+/**
+ * The file a stored path loads. Foundry loads a path as a URL, so a query or fragment is no part of the file.
+ * A stored `%20` is a space on disk, and worlds hold both spellings.
+ */
+export function fileOf(value) {
+  const path = value.split(/[?#]/)[0];
+  try { return decodeURIComponent(path); } catch { return path; }
 }
 
 /** `<creator>/<pack>` for one index row, or null when its preview is not that shape. */
@@ -44,7 +28,7 @@ function packFolder(asset) {
   const cut = preview.lastIndexOf(base);
   if (cut < 0) return null;
   try {
-    return new URL(preview.slice(0, cut)).pathname.replace(/^\/|\/$/g, "") || null;
+    return decodeURIComponent(new URL(preview.slice(0, cut)).pathname).replace(/^\/|\/$/g, "") || null;
   } catch {
     return null;
   }

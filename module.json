@@ -1,7 +1,7 @@
 {
   "id": "graft-moulinette",
   "title": "Graft: Moulinette",
-  "description": "Makes Moulinette content graftable. Import a scene through Moulinette as usual and it becomes a compendium source a graft can name; a reader's build fetches it, and the files it uses, from their own Moulinette subscription.",
+  "description": "Makes Moulinette content graftable. A graft names a scene, a map or a track by its Moulinette pack and path, and a reader's build fetches it from their own Moulinette subscription.",
   "url": "https://github.com/wizzlethorpe/graft-moulinette",
   "license": "LICENSE",
   "readme": "README.md",
@@ -25,44 +25,6 @@
       "entries": []
     }
   },
-  "packs": [
-    {
-      "name": "scenes",
-      "label": "Moulinette Scenes",
-      "path": "packs/scenes",
-      "type": "Scene"
-    },
-    {
-      "name": "playlists",
-      "label": "Moulinette Playlists",
-      "path": "packs/playlists",
-      "type": "Playlist"
-    },
-    {
-      "name": "journal",
-      "label": "Moulinette Journal",
-      "path": "packs/journal",
-      "type": "JournalEntry"
-    },
-    {
-      "name": "macros",
-      "label": "Moulinette Macros",
-      "path": "packs/macros",
-      "type": "Macro"
-    }
-  ],
-  "packFolders": [
-    {
-      "name": "Moulinette",
-      "sorting": "a",
-      "packs": [
-        "scenes",
-        "playlists",
-        "journal",
-        "macros"
-      ]
-    }
-  ],
   "relationships": {
     "requires": [
       {
@@ -70,7 +32,7 @@
         "type": "module",
         "manifest": "https://github.com/wizzlethorpe/graft/releases/latest/download/module.json",
         "compatibility": {
-          "minimum": "0.9.1"
+          "minimum": "0.14.0"
         }
       },
       {

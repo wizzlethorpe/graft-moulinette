@@ -9,11 +9,11 @@ import { makeLedger, claimable } from "../scripts/author.mjs";
 
 const SCENE = JSON.stringify({ name: "Mad Lair", background: { src: "moulinette-v2/cloud/tmc/mad-lairs-2.3/scenes/mad-lair.webp" } });
 
-test("a document download is remembered by pack, file and content", () => {
+test("a document download is remembered by pack, path and content", () => {
   const record = downloaded(
     { pack_ref: 10698, filepath: "json/scene/mad-lair.json", type: 1, base_url: "https://x" },
     { path: "moulinette-v2/cloud/tmc/mad-lairs-2.3", message: SCENE, status: "success" });
-  assert.deepEqual(record, { pack: "10698", file: "json/scene/mad-lair.json", type: "Scene", document: JSON.parse(SCENE) });
+  assert.deepEqual(record, { pack: "10698", path: "json/scene/mad-lair.json", type: "Scene", document: JSON.parse(SCENE) });
   assert.equal(downloaded({ pack_ref: 1, filepath: "a.json", type: 42 }, { message: SCENE }).type, null,
     "a type number this module does not know");
 });
@@ -33,7 +33,7 @@ test("a file download is not a document", () => {
 
 test("the document that claims a download is the one with its name and type, once", () => {
   const ledger = makeLedger();
-  const record = { pack: "10698", file: "json/scene/mad-lair.json", type: "Scene", document: JSON.parse(SCENE) };
+  const record = { pack: "10698", path: "json/scene/mad-lair.json", type: "Scene", document: JSON.parse(SCENE) };
   ledger.remember(record);
   assert.equal(ledger.claim("Imported Scene", "Scene"), null, "Moulinette's placeholder does not match");
   assert.equal(ledger.claim("Mad Lair", "Playlist"), null, "same name, wrong type");
@@ -43,7 +43,7 @@ test("the document that claims a download is the one with its name and type, onc
 
 test("a download of unknown type is claimed by name alone", () => {
   const ledger = makeLedger();
-  ledger.remember({ pack: "1", file: "a.json", type: null, document: { name: "A" } });
+  ledger.remember({ pack: "1", path: "a.json", type: null, document: { name: "A" } });
   assert.ok(ledger.claim("A", "Playlist"));
 });
 
@@ -51,13 +51,13 @@ test("only a world document, created or filled, can claim", () => {
   assert.equal(claimable({ pack: null }), true, "created");
   assert.equal(claimable({ pack: null }, { name: "Mad Lair", walls: [] }), true, "filled by importFromJSON");
   assert.equal(claimable({ pack: null }, { thumb: "x.webp" }), false, "an update that is not the import");
-  assert.equal(claimable({ pack: "graft-moulinette.scenes" }), false, "this module's own pack copy landing");
+  assert.equal(claimable({ pack: "world.scenes" }), false, "made inside a compendium, where the same hooks fire");
 });
 
 test("a newer download replaces an unclaimed one", () => {
   const ledger = makeLedger();
-  ledger.remember({ pack: "1", file: "a.json", document: { name: "A" } });
-  ledger.remember({ pack: "2", file: "b.json", document: { name: "B" } });
+  ledger.remember({ pack: "1", path: "a.json", document: { name: "A" } });
+  ledger.remember({ pack: "2", path: "b.json", document: { name: "B" } });
   assert.equal(ledger.claim("A", "Scene"), null);
-  assert.equal(ledger.claim("B", "Scene")?.file, "b.json");
+  assert.equal(ledger.claim("B", "Scene")?.path, "b.json");
 });

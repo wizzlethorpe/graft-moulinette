@@ -1,9 +1,9 @@
 // The author's side: content imported through Moulinette's own browser gets a
 // source graft can name, with no gesture from the author.
 
-import { MODULE_ID, PACKS, documentId, referenceFor, parseReference } from "./refs.mjs";
-import { loadIndex, watchDownloads, downloadDocument, rowFor } from "./index.mjs";
-import { hasDocument, store, materialise } from "./packs.mjs";
+import { MODULE_ID, ownPath } from "./files.mjs";
+import { loadIndex, watchDownloads, downloadDocument, rowFor, TYPES, NOT_INDEXED } from "./index.mjs";
+import { graft } from "./handler.mjs";
 
 /**
  * The last document downloaded, held until a world document with its name and
@@ -22,10 +22,7 @@ export function makeLedger() {
   };
 }
 
-/**
- * Whether a hook call could be a Moulinette import landing: a world document,
- * either created or filled in by `importFromJSON`, which sets its name.
- */
+/** A world document created, or filled by `importFromJSON`, which sets its name. The hooks also fire inside a compendium. */
 export function claimable(document, changes) {
   if (document.pack) return false;
   return !changes || "name" in changes;
@@ -33,19 +30,23 @@ export function claimable(document, changes) {
 
 const ledger = makeLedger();
 
-/** Give a world document that just came from Moulinette a compendium source. */
+/** Write one asset's document where its path says which asset it is, and say where that is. */
+async function placeDocument(pack, path, data) {
+  const destination = ownPath(pack, path);
+  await graft().placeFile(destination, JSON.stringify(data), "application/json");
+  return destination;
+}
+
+/** Give a world document that just came from Moulinette a source: the untouched document, kept as a file. */
 async function adopt(document, changes) {
   if (!claimable(document, changes)) return;
   const record = ledger.claim(document.name, document.documentName);
   if (!record) return;
-  const type = document.documentName;
   try {
-    const id = await documentId(record.pack, record.file);
-    await store(type, record.document, id, record);
-    const reference = referenceFor(type, id);
-    await document.update({ _stats: { compendiumSource: reference }, [`flags.${MODULE_ID}`]: { pack: record.pack, file: record.file } });
+    const source = await placeDocument(record.pack, record.path, record.document);
+    await graft().recordFileSource(document, source);
     ui.notifications.info(game.i18n.format("GRAFTMOU.Adopted", { name: document.name }));
-    console.log(`${MODULE_ID} | ${document.name} is now ${reference}`);
+    console.log(`${MODULE_ID} | ${document.name} is built on ${source}`);
   } catch (err) {
     ui.notifications.warn(game.i18n.format("GRAFTMOU.AdoptFailed", { name: document.name, reason: err.message }));
   }
@@ -53,42 +54,23 @@ async function adopt(document, changes) {
 
 export function watchImports() {
   watchDownloads((record) => ledger.remember(record));
-  for (const type of Object.keys(PACKS)) {
+  for (const type of Object.values(TYPES)) {
     Hooks.on(`create${type}`, (document) => adopt(document));
     Hooks.on(`update${type}`, (document, changes) => adopt(document, changes));
   }
 }
 
 /**
- * Refill pack copies a module update wiped. Updating replaces the module
- * directory, packs included, and every adopted world document still names one.
- */
-export async function readopt() {
-  const names = new Map();
-  for (const type of Object.keys(PACKS)) {
-    for (const doc of game.collections.get(type)) {
-      const ref = parseReference(doc._stats?.compendiumSource);
-      if (ref && !hasDocument(type, ref.id)) names.set(ref, doc.name);
-    }
-  }
-  if (names.size === 0) return;
-  const failed = await materialise(names.keys(), await loadIndex());
-  const problems = [...names].filter(([ref]) => failed.has(ref.id)).map(([ref, name]) => `${name}: ${failed.get(ref.id)}`);
-  if (problems.length > 0) throw new Error(problems.join("; "));
-}
-
-/**
- * Bring one asset into this module's packs by hand, fetched afresh: for
- * content imported before this module was watching, or republished since.
+ * Fetch one asset's document afresh and keep it where a graft reads it, for content republished since it was adopted.
+ * Given a world `document` imported before this module was watching, records the file as its source.
  *
- * @returns the reference a graft can name
+ * @returns the path a graft names as the source
  */
-export async function importAsset({ type, pack, file }) {
-  if (!PACKS[type]) throw new Error(`no pack holds a ${type}; one of ${Object.keys(PACKS).join(", ")}`);
+export async function importAsset({ pack, path, document }) {
   const index = await loadIndex();
-  const row = rowFor(index, pack, file);
-  if (!row) throw new Error(`no ${file} in Moulinette pack ${pack}: your account may not include it, or it moved`);
-  const id = await documentId(row.pack_id, row.url);
-  await store(type, await downloadDocument(row, index), id, { pack: String(row.pack_id), file: row.url });
-  return referenceFor(type, id);
+  const row = rowFor(index, pack, path);
+  if (!row) throw new Error(`${pack}/${path}: ${NOT_INDEXED}`);
+  const source = await placeDocument(row.pack_id, row.url, await downloadDocument(row, index));
+  if (document) await graft().recordFileSource(document, source);
+  return source;
 }

@@ -5,76 +5,73 @@
 [![release](https://img.shields.io/github/v/release/wizzlethorpe/graft-moulinette?display_name=tag&sort=semver)](https://github.com/wizzlethorpe/graft-moulinette/releases/latest)
 [![foundry](https://img.shields.io/endpoint?url=https://foundryshields.com/version?url=https://github.com/wizzlethorpe/graft-moulinette/releases/latest/download/module.json&style=flat)](https://foundryvtt.com/packages/graft-moulinette)
 
-Makes [Moulinette](https://www.moulinette.cloud/) content usable as [graft](https://github.com/wizzlethorpe/graft) sources. When you import a scene through Moulinette's browser, this module records where it came from, so a graft can name it as a source. When a reader builds that graft, the build fetches the scene and the files it uses from the reader's own Moulinette subscription. The graft itself never contains the publisher's content.
+Makes [Moulinette](https://www.moulinette.cloud/) content usable in a [graft](https://github.com/wizzlethorpe/graft). A graft lists the scenes, maps, tiles and tracks it needs by Moulinette pack and path, and when a reader builds it, the files come from the reader's own Moulinette subscription. The graft itself never contains the publisher's content.
 
-To install, simply search for **Graft** in Foundry's *Install Module* dialog. Needs Moulinette and graft 0.9.1 or later.
+To install, search for **Graft** in Foundry's *Install Module* dialog. Needs Moulinette and graft 0.14.0 or later.
 
 > [!IMPORTANT]
-> **Enable this module before you import.** It records where a document came from at the moment Moulinette hands it over. Documents imported before that have no recorded source, so **Copy graft** on them copies the whole document, walls and lights included, without warning you. The source cannot be recovered from disk afterwards, because Moulinette saves a document's images and audio but never the document itself. For content you imported earlier, write the source by hand or import it again.
+> **Enable this module before you import.** It records where a document came from at the moment Moulinette hands it over. Documents imported before that have no recorded source, so **Copy graft** on them copies the whole document, walls and lights included. The source cannot be recovered from disk afterwards, because Moulinette saves a document's images and audio but never the document itself. For a document you imported earlier, use `api.import` below.
 
-## What a source looks like
+## What a graft lists
 
-```
-Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg
-```
-
-This is an ordinary compendium UUID. The pack is one this module declares, one per document type (`scenes`, `playlists`, `journal`, `macros`). The id is a hash of the asset's Moulinette pack number and its filepath within that pack, so the same asset gets the same sixteen characters on every machine. Graft treats the source as a normal document; this module reads it to know exactly which asset to fetch.
-
-Nobody can compute that hash by hand, so you can also write a source as an alias, from the two things the asset's marketplace page shows you: the pack number and the filepath.
-
-```
-@moulinette/Scene/10698/json/scene/mad-lair.json
-```
-
-The type is part of the alias because it decides which pack the document lands in, and the module cannot ask Moulinette for it when the graft is written. Both spellings name the same document; the build converts the alias to the UUID before graft resolves it. **Copy graft** writes the alias form, so what you paste is what you would have written by hand. The one exception is a source nested inside a patch, such as a scene inside an Adventure, which comes back as the UUID.
-
-## Authoring
-
-Import through Moulinette as you always have. When the document lands in your world, this module writes an unmodified copy into its own pack under the asset's id and records that copy as the world document's source. Edit the world copy and press **Copy graft**: graft diffs your version against the pack copy, so the entry names the Moulinette asset instead of carrying the scene.
+This module is a graft asset handler. A graft lists each Moulinette file it needs under `assets.moulinette`, as a `source` and a `destination`, and this module puts each one there before anything builds. The entries name the destinations, which are ordinary paths.
 
 ```json
 {
-  "id": "mySewerLair00001",
-  "type": "Scene",
-  "pack": "my-scenes",
-  "source": "@moulinette/Scene/10698/json/scene/mad-lair.json",
-  "patch": {
-    "name": "The Sewer Lair",
-    "walls": [ … ]
-  }
+  "format": 4,
+  "assets": {
+    "moulinette": { "files": [
+      { "source": "10698/json/scene/mad-lair.json", "destination": "graft/moulinette/10698/json/scene/mad-lair.json" },
+      { "source": "10698/audio/drip.ogg", "destination": "graft/moulinette/10698/audio/drip.ogg" }
+    ] }
+  },
+  "entries": [
+    {
+      "id": "mySewerLair00001",
+      "type": "Scene",
+      "source": "graft/moulinette/10698/json/scene/mad-lair.json",
+      "patch": {
+        "name": "The Sewer Lair",
+        "sounds": [{ "_id": "drip000000000001", "path": "graft/moulinette/10698/audio/drip.ogg", "x": 900, "y": 1200, "radius": 20 }]
+      }
+    }
+  ]
 }
 ```
 
-Moulinette never says which world document came from which download, so this module matches them itself: it remembers the last file Moulinette downloaded and takes the next document to appear in your world with the same name and type to be it.
+A `source` is the pack number and the path inside that pack, which are the two things the asset's marketplace page shows you. A `destination` is any path in the Foundry data folder. A `.json` asset is a document, its destination ends `.json` too, and an entry names that destination as its `source`. Anything else is a file, and a patch names its destination wherever a path would go: a scene's background, a tile's texture, a sound's path.
 
-**This module only adopts documents that arrive while it is enabled.** A document imported before then has no recorded source, so **Copy graft** copies it whole. To fix one, write its source by hand (this is what the alias is for) or import it again through Moulinette and copy that.
+## Authoring
 
-When a creator republishes a pack, your pack copy goes stale. `api.import` fetches an asset again and replaces the pack copy, taking the same pack number and filepath the marketplace page shows. It does not touch documents already in your world.
+Import through Moulinette as you always have. When the document lands in your world, this module keeps an untouched copy of it as a file under `graft/moulinette/<pack>/` and tells graft that file is the document's source. Edit the world copy, drop in whatever Moulinette tiles and sounds you like, and press **Copy graft**.
+
+Graft diffs your version against the file, so the entry holds your changes and none of the creator's work. This module adds the `assets.moulinette` block to what is copied. It lists the document, and every file under your Moulinette folder that your changes name, each with the file the entry's path loads as its destination. What you paste fetches everything it needs on a reader's machine.
+
+A file under your Moulinette folder that matches nothing in your Moulinette index is left out of the block, and a warning names it. Copying a graft that names Moulinette files needs you signed in to Moulinette, since only its index says which asset a file is.
+
+Moulinette never says which world document came from which download, so this module matches them itself: it remembers the last document Moulinette downloaded and takes the next one to appear in your world with the same name and type to be it.
+
+**This module only adopts documents that arrive while it is enabled.** For a document imported before then, `api.import` fetches the asset afresh, writes the file, and records it as that document's source. It takes the pack number and path the marketplace page shows. Without a `document` it only rewrites the file, which is what you want when a creator republishes a pack.
 
 ```js
-await game.modules.get("graft-moulinette").api.import({ type: "Scene", pack: 10698, file: "json/scene/mad-lair.json" })
-// "Compendium.graft-moulinette.scenes.Scene.CwVVyANWmNpt3Hfg"
+await game.modules.get("graft-moulinette").api.import({ pack: 10698, path: "json/scene/mad-lair.json", document: game.scenes.getName("Mad Lair") })
+// "graft/moulinette/10698/json/scene/mad-lair.json"
 ```
-
-Files stay where Moulinette put them, under `moulinette-v2/cloud/<creator>/<pack>/`, and a graft names them by that path. This module rewrites nothing.
-
-Only a Moulinette *Scene*, the kind that arrives with walls and lights, becomes a source. A Moulinette *Map* is a bare image, and Moulinette builds a scene around it locally, so there is no document to adopt. **Copy graft** on one copies that scene whole, but it holds nothing except default settings and the image's path, and the image itself still resolves for a reader like any other file.
-
-Updating this module replaces its packs, as any module update does. Every adopted document in the world records which asset it came from, so the next world load refills the packs from your subscription.
 
 ## Building
 
-When a graft names one of this module's packs, either as its source or nested inside its patch, the build fetches the document first: the module finds the asset in the reader's own Moulinette index by id, and Moulinette downloads it into the pack along with its map, tiles and ambience. Then graft resolves the source as usual. The build reports an asset the reader's account does not include in its **Not built by Moulinette** section, and every other entry still builds.
+Before a build, graft hands this module the `assets.moulinette` block. Each source is looked up in the reader's own Moulinette index. A document is downloaded by Moulinette, which also fetches the images and audio the document itself uses, and its JSON is written to the destination. Any other file is downloaded from the link Moulinette signs for the reader's account and written to the destination.
 
-After every build, this module scans the documents graft made for `moulinette-v2/cloud/...` paths and fetches any file not on disk through Moulinette to exactly that path. A path it cannot match to an asset, or that Moulinette now files elsewhere, goes to the console.
+A file already at its destination is not fetched again unless the reader asks graft to fetch everything. A file the reader's account does not include is reported as skipped, with the reason. An entry whose source never arrived is skipped by graft, and a missing image or track shows as missing in Foundry.
+
+Only a Moulinette *Scene*, *Journal Entry*, *Playlist* or *Macro* is adopted on import. A Moulinette *Map* is a bare image: list it as a file, and compose the scene around it in your own entry.
 
 ## Limits
 
-- **Actors and Items** have no pack yet. Foundry requires an Actor or Item pack to declare its system, so those types need one pack per system.
-- **Renamed packs.** A creator renaming a pack changes the folder Moulinette files it under, so a graft made before the rename names files by a path Moulinette no longer writes to. The build reports each such file with where it landed instead.
-- **Storage on a bucket.** A reader whose Moulinette stores on S3 has paths behind a base URL. A graft names data-relative paths, and this module checks and fetches on the data storage only.
-- **ScenePacker packs and private cloud content** are not in the asset index, so they cannot be named.
-- **Paths inside markup**, such as an `<img>` in a journal page, are left alone. The module fetches only a value that is a path by itself.
+- **Storage on a bucket.** A world whose Foundry stores on S3 names its files by URL. This module checks and writes on the data storage only, and does not list a URL.
+- **Paths inside markup**, such as an `<img>` in a journal page, are not listed. Only a value that is a path by itself is.
+- **ScenePacker packs and private cloud content** are not in the asset index, so they cannot be listed.
+- **A file the reader also has through Moulinette** is stored a second time when its destination is somewhere other than Moulinette's own folder.
 
 ## Support
 
@@ -83,12 +80,11 @@ Graft: Moulinette is free and open source, from Wizzlethorpe Labs. If it is usef
 ## Layout
 
 ```
-scripts/refs.mjs     the reference form and its id. Pure.
-scripts/paths.mjs    recognising a Moulinette path and matching it to an asset. Pure.
+scripts/files.mjs    how the assets block names a file, and where a document's JSON is kept. Pure.
+scripts/paths.mjs    recognising a path under Moulinette's folder and matching it to an asset. Pure.
 scripts/index.mjs    everything that touches Moulinette: its index, its downloads, the wrap that watches them.
-scripts/packs.mjs    writing into this module's packs.
 scripts/author.mjs   adopting what Moulinette imports.
-scripts/reader.mjs   aliases, the graftPreBuild transform, Copy graft's rename, the post-build file fetch.
+scripts/handler.mjs  the asset handler: place for a build, collect for Copy graft.
 scripts/main.mjs     hooks only.
 ```
 

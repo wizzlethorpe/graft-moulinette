@@ -1,8 +1,6 @@
 {
   "GRAFTMOU.AdoptFailed": "{name} was imported, but could not be made a graft source: {reason}",
   "GRAFTMOU.Adopted": "{name} is now a graft source. Copy graft on it will name Moulinette rather than carry the document.",
-  "GRAFTMOU.FetchFailed": "Graft: Moulinette could not fetch the files this build names: {reason}",
-  "GRAFTMOU.Fetched": "Moulinette: fetched {fetched} file(s), {problems} left unresolved. The console names any that were.",
-  "GRAFTMOU.NoCollection": "Graft: Moulinette's cloud collection is not where this module expects it, so imports will not become graft sources. This needs updating.",
-  "GRAFTMOU.ReadoptFailed": "Graft: Moulinette could not refill its packs for the documents in this world: {reason}"
+  "GRAFTMOU.NotIndexed": "{path} is under Moulinette's folder but matches nothing in your Moulinette index, so the copied graft does not list it and a reader will not get it.",
+  "GRAFTMOU.NoCollection": "Graft: Moulinette's cloud collection is not where this module expects it, so imports will not become graft sources. This needs updating."
 }

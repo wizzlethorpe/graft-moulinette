@@ -4,11 +4,6 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 
 ## Known limits
 
-- Copy graft renames only an entry's own source. A source nested in a patch,
-  the way an Adventure carries its scenes, comes back as the compendium UUID:
-  naming it would mean reading the flag off each embedded document's pack copy,
-  and the entry's own document cannot answer for them.
-
 - The author-side match is by name and type. Moulinette creates a placeholder
   and fills it by `importFromJSON`, so nothing ties the update to the download
   but the document's name and the order of events. Two imports of same-named
@@ -22,15 +17,13 @@ Short, and meant to stay short. Anything settled belongs in the README instead.
 - Moulinette's asset type numbers are read from its bundle and pinned in
   `index.mjs`. A renumbering makes every download claim by name alone, which
   still works and is not reported.
-- An alias is not checked when it is written. Nothing can reach Moulinette at
-  authoring time, so a mistyped pack or filepath first shows up on a reader's
-  machine as "not in your Moulinette index". Importing through Moulinette and
-  pressing Copy graft cannot get this wrong, and is still the surer road.
+- A source is not checked when it is written by hand. Nothing can reach Moulinette at authoring time outside Foundry, so a mistyped pack or path first shows up on a reader's machine as "not in your Moulinette index". Importing through Moulinette and pressing Copy graft cannot get this wrong.
+- Adoption watches Scenes, Journal Entries, Playlists and Macros, the types whose Moulinette asset numbers are known. An Actor or an Item builds from a listed file like any other document, but is not adopted on import.
 
 ## Wanted
 
 - A way to adopt existing world content. Any local path in the document gives
-  its pack exactly, through the same folder map the file fetch uses; the
+  its pack exactly, through the same folder map Copy graft uses; the
   document's own filepath does not follow, and has to be inferred by
   downloading the pack's `.json` rows and matching their dependencies against
   the paths the document uses. Worth it for a batch of scenes, where the match
