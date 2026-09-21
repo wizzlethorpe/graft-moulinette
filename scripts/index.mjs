@@ -5,7 +5,8 @@
 import { lookup, rowKey, DEFAULT_ROOT } from "./paths.mjs";
 import { isDocument } from "./files.mjs";
 
-export const NOT_INDEXED = "not in your Moulinette index: your account may not include it, or it moved";
+// Moulinette's index is what its server lets this session reach. A session not linked to Patreon holds only free content.
+export const NOT_INDEXED = "not in your Moulinette index: Moulinette may not be linked to your Patreon in this world, your pledges may not include it, or it moved";
 
 /** The collection that fetches `/all-assets`: everything the account can reach. */
 const CACHED_COLLECTION = "mou-cloud-cached";

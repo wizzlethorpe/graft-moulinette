@@ -62,7 +62,7 @@ await game.modules.get("graft-moulinette").api.import({ pack: 10698, path: "json
 
 Before a build, graft hands this module the `assets.moulinette` block. Each source is looked up in the reader's own Moulinette index. A document is downloaded by Moulinette, which also fetches the images and audio the document itself uses, and its JSON is written to the destination. Any other file is downloaded from the link Moulinette signs for the reader's account and written to the destination.
 
-A file already at its destination is not fetched again unless the reader asks graft to fetch everything. A file the reader's account does not include is reported as skipped, with the reason. An entry whose source never arrived is skipped by graft, and a missing image or track shows as missing in Foundry.
+A file already at its destination is not fetched again unless the reader asks graft to fetch everything. A file that is not in the reader's index is reported as skipped. Moulinette's index holds only what its server lets the session reach, so a world where Moulinette is not linked to the reader's Patreon finds nothing but free content. An entry whose source never arrived is skipped by graft, and a missing image or track shows as missing in Foundry.
 
 Only a Moulinette *Scene*, *Journal Entry*, *Playlist* or *Macro* is adopted on import. A Moulinette *Map* is a bare image: list it as a file, and compose the scene around it in your own entry.
 

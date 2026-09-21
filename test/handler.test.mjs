@@ -153,7 +153,7 @@ test("a wrap on an earlier collection does not reach this one", async () => {
 test("a file the reader's account does not hold is skipped with the reason, and the rest are still fetched", async () => {
   const { skipped } = await place({ files: [{ source: "999/images/gone.webp", destination: "graft/moulinette/999/images/gone.webp" }, ...FILES.files] });
   assert.deepEqual(skipped.map((s) => s.id), ["999/images/gone.webp"]);
-  assert.match(skipped[0].reason, /not in your Moulinette index/);
+  assert.match(skipped[0].reason, /not in your Moulinette index: Moulinette may not be linked to your Patreon in this world/);
   assert.equal(disk.has(MAP_AT), true);
 });
 
